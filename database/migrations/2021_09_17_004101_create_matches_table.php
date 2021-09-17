@@ -16,13 +16,14 @@ class CreateMatchesTable extends Migration
         Schema::create('matches', function (Blueprint $table) {
             $table->id();
             $table->string("match_id")->unique();
+            $table->date("match_date");
             $table->string("league_id");
             $table->string("league_name");
             $table->string("home_player");
             $table->string("home_team");
             $table->string("away_player");
             $table->string("away_team");
-            $table->string("score");
+            $table->string("score")->nullable();
             $table->timestamps();
         });
     }

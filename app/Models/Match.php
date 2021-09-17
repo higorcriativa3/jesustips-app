@@ -11,6 +11,7 @@ class Match extends Model
 
     protected $fillable = [
         "match_id",
+        "match_date",
         "league_id",
         "league_name",
         "home_player",

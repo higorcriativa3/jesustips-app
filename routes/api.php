@@ -133,7 +133,7 @@ Route::get('/odd', function(){
                             "title" => "winner",
                             "home" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+2]["OD"]),
-                                "latten" => "90%",
+                                "lastten" => "90%",
                                 "all" => "83%"
                             ],
                             "away" => [
@@ -157,7 +157,7 @@ Route::get('/odd', function(){
                             "handcap" => $type[$oddkey+2]["NA"],
                             "over" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "latten" => "90%",
+                                "lastten" => "90%",
                                 "all" => "83%"
                             ],
                             "under" => [
@@ -177,7 +177,7 @@ Route::get('/odd', function(){
                             "handcap" => $type[$oddkey+2]["NA"],
                             "over" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "latten" => "90%",
+                                "lastten" => "90%",
                                 "all" => "83%"
                             ],
                             "under" => [
@@ -200,7 +200,7 @@ Route::get('/odd', function(){
                             "handcap" => $type[$oddkey+2]["NA"],
                             "over" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "latten" => "90%",
+                                "lastten" => "90%",
                                 "all" => "83%"
                             ],
                             "under" => [
@@ -298,13 +298,20 @@ Route::get('/ended', function(){
         return $obj;
     }
 
+    function convertEpochToDateTime($epoch) {
+        $dt = new DateTime("@$epoch");  // convert UNIX timestamp to PHP DateTime
+        return $dt->format('Y-m-d H:i:s'); // output = 2017-01-01 00:00:00
+    }
+
     $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22821&token=91390-4sDwuMJTtIhuPJ&page=';
 
     do{
         $response = Http::get($url . $page)->json();
 
-        if(!$response["success"]) {
-            return response(["message" => "error: {$response["error_detail"]}"], 500);
+        if(!isset($response["success"])) {
+            if($response["success"] != 1) {
+                return response(["message" => "error: {$response["error_detail"]}"], 500);
+            }  
         }
         $per_page = $response['pager']['per_page'];
         $total = $response['pager']['total'];
@@ -316,6 +323,7 @@ Route::get('/ended', function(){
             try{
                 $newMatch = Match::create([
                     "match_id" => $match["id"],
+                    "match_date" => convertEpochToDateTime($match["time"]),
                     "league_id" => $match["league"]["id"],
                     "league_name" => $match["league"]["name"],
                     "home_player" => $home["name"],
@@ -330,6 +338,8 @@ Route::get('/ended', function(){
         }
 
         $page++;
+
+        file_put_contents(base_path("storage/app/pageControl.txt"), $page);
         
     } while($page < 1001);
 
