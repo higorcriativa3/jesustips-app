@@ -58,35 +58,22 @@ class Stats {
     $overGoals1dot5 = 0;
     $underGoals1dot5 = 0;
 
-    $moreThenOne = 0;
+    $player1WinsLastTen = 0;
+    $player1WinsLastTenPerc = 0;
+    $player2WinsLastTen = 0;
+    $player2WinsLastTenPerc = 0;
+    $drawLastTen = 0;
+    $drawLastTenPerc = 0;
+
+    $bothToScore = 0;
+    $bothToScoreLastTen = 0;
     $lessThenOne = 0;
 
     $draws = 0;
 
-    // $result = file_get_contents(base_path('storage/app/endeds.json'));
-
-    // // return $result;
-
-    // $rawMatches = json_decode($result, true);
-
     $matches = array();
 
-    // Find player in history object
-    // foreach($statistics as $team) {
-    //     if(
-    //         str_contains($team['home']['name'], $player1) != true && 
-    //         str_contains($team['away']['name'], $player2) != true ||
-    //         str_contains($team['home']['name'], $player2) != true &&
-    //         str_contains($team['away']['name'], $player1) != true
-    //     )
-    //     {
-    //         $matches[] = $team;
-    //     }
-    // }
-
-    // dd($matches);
-
-    foreach($statistics as $event) {
+    foreach($statistics as $key =>$event) {
         $countMatches++;
         // explode home to get player
         /** Without Explode
@@ -132,10 +119,13 @@ class Stats {
             // Increment to winner
             if($homeGoals > $awayGoals) {
                 $player1Wins++;
+
             } elseif($homeGoals == $awayGoals) {
                 $draws++;
+
             } else {
                 $player2Wins++;
+
             }
 
         } else {
@@ -154,8 +144,27 @@ class Stats {
         }
 
         // Both goal
-        if($homeGoals > 1 || $awayGoals > 1) {
-            $moreThenOne++;
+        if($homeGoals > 1 && $awayGoals > 1) {
+            $bothToScore++;
+        }
+
+        // Partial last ten
+        if($key == 9 && $countMatches != 0) {
+            $bothToScoreLastTen = $bothToScore;
+            if($player1Wins != 0) {
+                $player1WinsLastTenPerc = round(($player1Wins / $countMatches) * 100, 2);
+                $player1WinsLastTen = $player1Wins;
+            }
+
+            if($draws != 0) {
+                $drawLastTenPerc = round(($draws / $countMatches) * 100, 2);
+                $drawLastTen = $draws;
+            }
+
+            if($player2Wins != 0) {
+                $player2WinsLastTenPerc = round(($player2Wins / $countMatches) * 100, 2);
+                $player2WinsLastTen = $player2Wins;
+            }
         }
 
         // Both don't make goal
@@ -163,18 +172,20 @@ class Stats {
             $lessThenOne++;
         }
     }
+    
+    $player1WinsPerc = 0;
+    $player2WinsPerc = 0;
+    $drawsPerc = 0;
 
-    /** Return players matchs */
-    // return $matches;
-
-    /** Return Players goals */
-    // return [
-    //     "player1goals" => $player1Goals, 
-    //     "player2goals" => $player2Goals,
-    //     "player1wins" => $player1Wins,
-    //     "player2wins" => $player2Wins,
-        
-    // ];
+    if($player1Wins != 0 && $countMatches != 0) {
+        $player1WinsPerc = round(($player1Wins / $countMatches) * 100, 2);
+    }
+    if($player2Wins != 0 && $countMatches != 0) {
+        $player2WinsPerc = round(($player2Wins / $countMatches) * 100, 2);
+    }
+    if($draws != 0 && $countMatches != 0) {
+        $drawsPerc = round(($draws / $countMatches) * 100, 2);
+    }
 
     $objToView = [
         'player1' => $player1,
@@ -182,15 +193,214 @@ class Stats {
         'player1Goals' => $player1Goals,
         'player2Goals' => $player2Goals,
         'player1Wins' => $player1Wins,
+        'player1WinsPerc' => $player1WinsPerc,
+        'player1WinsLastTen' => $player1WinsLastTen,
+        'player1WinsLastTenPerc' => $player1WinsLastTenPerc,
         'player2Wins' => $player2Wins,
+        'player2WinsPerc' => $player2WinsPerc,
+        'player2WinsLastTen' => $player2WinsLastTen,
+        'player2WinsLastTenPerc' => $player2WinsLastTenPerc,
         'draws' => $draws,
+        'drawsPerc' => $drawsPerc,
+        'drawLastTen' => $drawLastTen,
+        'drawLastTenPerc' => $drawLastTenPerc,
         'matches' => $countMatches,
         'overGoals1dot5' => $overGoals1dot5,
         'underGoals1dot5' => $underGoals1dot5,
-        'moreThenOne' => $moreThenOne,
+        'bothToScore' => $bothToScore,
+        'bothToScoreLastTen' => $bothToScoreLastTen,
         'lessThenOne' => $lessThenOne
     ];
 
     return $objToView;
+  }
+
+  public static function overAndUnderMatchGoals($home, $away, $odd) {
+    $results = Match::where([
+        'home_player' => $home,
+        'away_player' => $away
+        ])
+        ->orderBy('match_date', 'DESC')
+        ->get()
+        ->toArray();
+
+    $overCount = 0;
+    $underCount = 0;
+    $eventCount = 0;
+
+    $parcialOver  = 0;
+    $parcialUnder = 0;
+    $parcialEvent = 0;
+
+    $lastTenOver = 0;
+    $lastTenUnder = 0;
+
+    foreach($results as $key => $event){
+        $score = explode("-", $event['score']);
+        $sumScore = $score[0] + $score[1];
+
+        if($sumScore > $odd) {
+            $overCount++;
+        } else {
+            $underCount++;
+        }
+
+        $eventCount++;
+
+        if($key == 9 && $eventCount != 0) {
+            if($overCount != 0) {
+                $lastTenOver = round(($overCount / $eventCount) * 100, 2);
+            }
+
+            if($underCount != 0) {
+                $lastTenUnder = round(($underCount / $eventCount) * 100, 2);
+            }
+            
+        }
+    }
+
+    $overAll = 0;
+    $underAll = 0;
+
+    if($overCount != 0 && $eventCount != 0) {
+        $overAll = round(($overCount / $eventCount) * 100, 2);
+    }
+
+    if($underCount != 0 && $eventCount != 0) {
+        $underAll = round(($underCount / $eventCount) * 100, 2);
+    }
+    
+
+    $return = [
+        "over" => [
+            "lastten" => $lastTenOver,
+            "all" => $overAll
+        ],
+        "under" => [
+            "lastten" => $lastTenUnder,
+            "all" => $underAll
+        ],
+    ];
+
+    return $return;
+  }
+
+  public static function overAndUnderHomeAway($home, $away, $odd) {
+    $results = Match::where([
+        'home_player' => $home,
+        'away_player' => $away
+        ])
+        ->orderBy('match_date', 'DESC')
+        ->get()
+        ->toArray();
+
+    // Initiate over arrays
+    $homeOverCount = 0;
+    $homeOverLastTen = 0;
+
+    $awayOverCount = 0;
+    $awayOverLastTen = 0;
+
+    // Initiate under arrays
+    $homeUnderCount = 0;
+    $homeUnderLastTen = 0;
+
+    $awayUnderCount = 0;
+    $awayUnderLastTen = 0;
+
+    $eventCount = 0;
+
+    foreach($results as $key => $event){
+        $score = explode("-", $event['score']);
+        $sumScore = $score[0] + $score[1];
+
+        if($score[0] > $odd) {
+            $homeOverCount++;
+        } else {
+            $homeUnderCount++;
+        }
+
+        if($score[1] > $odd) {
+            $awayOverCount++;
+        } else {
+            $awayUnderCount++;
+        }
+
+        $eventCount++;
+
+        if($key == 9 && $eventCount != 0) {
+            // Home over
+            if($homeOverCount != 0 && $homeUnderCount != 0) {
+                $homeOverLastTen = round(($homeOverCount / $eventCount) * 100, 2);
+            }
+
+            // Home under
+            if($homeUnderCount != 0 && $homeUnderCount != 0) {
+                $homeUnderLastTen = round(($homeUnderCount / $eventCount) * 100, 2);
+            }
+
+            // Away over
+            if($awayOverCount != 0 && $awayUnderCount != 0) {
+                $awayOverLastTen = round(($awayOverCount / $eventCount) * 100, 2);
+            }
+
+            // Away under
+            if($awayUnderCount != 0 && $awayUnderCount != 0) {
+                $awayUnderLastTen = round(($awayUnderCount / $eventCount) * 100, 2);
+            }
+        }
+    }
+
+    $homeOverAll = 0;
+    $homeUnderAll = 0;
+
+    $awayOverAll = 0;
+    $awayUnderAll = 0;
+
+    // Home over
+    if($homeOverCount != 0 && $homeUnderCount != 0) {
+        $homeOverAll = round(($homeOverCount / $eventCount) * 100, 2);
+    }
+
+    // Home under
+    if($homeUnderCount != 0 && $homeUnderCount != 0) {
+        $homeUnderAll = round(($homeUnderCount / $eventCount) * 100, 2);
+    }
+
+    // Away over
+    if($awayOverCount != 0 && $awayUnderCount != 0) {
+        $awayOverAll = round(($awayOverCount / $eventCount) * 100, 2);
+    }
+
+    // Away under
+    if($awayUnderCount != 0 && $awayUnderCount != 0) {
+        $awayUnderAll = round(($awayUnderCount / $eventCount) * 100, 2);
+    }
+    
+
+    $return = [
+        "home" => [
+            "over" => [
+                "lastten" => $homeOverLastTen,
+                "all" => $homeOverAll
+            ],
+            "under" => [
+                "lastten" => $homeUnderLastTen,
+                "all" => $homeUnderAll
+            ]
+        ],
+        "away" => [
+            "over" => [
+                "lastten" => $awayOverLastTen,
+                "all" => $awayOverAll
+            ],
+            "under" => [
+                "lastten" => $awayUnderLastTen,
+                "all" => $awayUnderAll
+            ]
+        ]
+    ];
+
+    return $return;
   }
 }

@@ -74,7 +74,7 @@ Route::get('/odd', function(){
         $home = dividePlayerAndTeam($match["home"]["name"]);
         $away = dividePlayerAndTeam($match["away"]["name"]);
          
-        // $statistics = Stats::statistics($home, $away);
+        $rawStatistics = Stats::statistics($home, $away);
 
         // dd($statistics);
 
@@ -110,13 +110,9 @@ Route::get('/odd', function(){
         ];
 
         $getOdd = Http::get("https://api.b365api.com/v1/bet365/event?token=91390-4sDwuMJTtIhuPJ&FI={$match['id']}")
-                            ->json();
-
-        // $results = $getOdd["results"];
+        ->json();
 
         if(!isset($getOdd["results"])){continue;}
-
-        // dd($results);
 
         // For each match result
         foreach($getOdd["results"] as $typekey => $type) {
@@ -128,42 +124,44 @@ Route::get('/odd', function(){
 
                     //  Fulltime result
                     if($odd["NA"] == "Fulltime Result"){
-
                         $inplayMatch["winnerft"] = [
                             "title" => "winner",
                             "home" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+2]["OD"]),
-                                "lastten" => "90%",
-                                "all" => "83%"
+                                "lastten" => $rawStatistics["player1WinsLastTenPerc"],
+                                "all" => $rawStatistics["player1WinsPerc"]
                             ],
                             "away" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "lastten" => "50%",
-                                "all" => "43%"
+                                "lastten" => $rawStatistics["player2WinsLastTenPerc"],
+                                "all" => $rawStatistics["player2WinsLastTenPerc"]
                             ],
                             "draw" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+3]["OD"]),
-                                "lastten" => "50%",
-                                "all" => "43%"
+                                "lastten" => $rawStatistics["drawLastTenPerc"],
+                                "all" => $rawStatistics["drawsPerc"]
                             ],
                         ];
-                    } else {
-                        $inplayMatch["winnerft"] = null;
                     }
 
                     //  goals ft
                     if($odd["NA"] == "Match Goals"){
+                        $stats = Stats::overAndUnderMatchGoals(
+                            $home["name"], 
+                            $away["name"], 
+                            $type[$oddkey+2]["NA"]);
+                        
                         $inplayMatch["golsft"] = [
                             "handcap" => $type[$oddkey+2]["NA"],
                             "over" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "lastten" => "90%",
-                                "all" => "83%"
+                                "lastten" => $stats["over"]["lastten"],
+                                "all" => $stats["over"]["all"]
                             ],
                             "under" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
-                                "lastten" => "50%",
-                                "all" => "43%"
+                                "lastten" => $stats["under"]["lastten"],
+                                "all" => $stats["under"]["lastten"]
                             ]
                         ];
                     }
@@ -171,19 +169,22 @@ Route::get('/odd', function(){
                     // Goals home
                     if(
                         str_contains($odd["NA"], $home["name"]) && 
-                        str_contains($odd["NA"], "Goals")) 
-                        {
+                        str_contains($odd["NA"], "Goals")
+                    ) 
+                    {
+                        
+                        $stats = Stats::overAndUnderHomeAway($home, $away, $type[$oddkey+2]["NA"]);
                         $inplayMatch["homegols"] = [
                             "handcap" => $type[$oddkey+2]["NA"],
                             "over" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "lastten" => "90%",
-                                "all" => "83%"
+                                "lastten" => $stats["home"]["over"]["lastten"],
+                                "all" => $stats["home"]["over"]["all"]
                             ],
                             "under" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
-                                "lastten" => "50%",
-                                "all" => "43%"
+                                "lastten" => $stats["home"]["under"]["lastten"],
+                                "all" => $stats["home"]["under"]["lastten"]
                             ]
                         ];
                     }
@@ -192,27 +193,33 @@ Route::get('/odd', function(){
                     if(
                         str_contains($odd["NA"], $away["name"]) && 
                         str_contains($odd["NA"], "Goals")
-                        ) 
+                    ) 
+                    {
 
-                        {
+                        $stats = Stats::overAndUnderHomeAway($home, $away, $type[$oddkey+2]["NA"]);
 
                         $inplayMatch["awaygols"] = [
                             "handcap" => $type[$oddkey+2]["NA"],
                             "over" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "lastten" => "90%",
-                                "all" => "83%"
+                                "lastten" => $stats["away"]["over"]["lastten"],
+                                "all" => $stats["away"]["over"]["all"]
                             ],
                             "under" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
-                                "lastten" => "50%",
-                                "all" => "43%"
+                                "lastten" => $stats["away"]["under"]["lastten"],
+                                "all" => $stats["away"]["over"]["all"]
                             ]
                         ];
                     }
 
                     // Both to score
                     if(str_contains($odd["NA"], "Both Teams To Score")){
+                        $lastTen = $rawStatistics["bothToScoreLastTen"];
+                        $all = $rawStatistics["bothToScore"];
+                        $matches = $rawStatistics["matches"];
+
+                        // dd([$all, $matches]);
 
                         $inplayMatch["bothscore"] = [
                             "yes" => [
@@ -220,16 +227,16 @@ Route::get('/odd', function(){
                                          convertOddToDecimal($type[$oddkey+2]["OD"]) :
                                          "0",
 
-                                "lastten" => "10",
-                                "all" => "3"
+                                "lastten" => round(($lastTen / 10) * 100, 2),
+                                "all" => round(($all / $matches) * 100, 2)
                             ],
                             "no" => [
                                 "odd" => isset($type[$oddkey+3]["OD"]) ?
                                          convertOddToDecimal($type[$oddkey+3]["OD"]) :
                                          "0",
 
-                                "lastten" => "10",
-                                "all" => "3"
+                                "lastten" => round(((10 - $lastTen) / 10) * 100, 2),
+                                "all" => round((($matches - $all) / $matches) * 100, 2)
                             ],
                         ];
                     }
@@ -237,21 +244,31 @@ Route::get('/odd', function(){
                     // Double chance
                     if(str_contains($odd["NA"], "Double Chance")) {
 
+                        $onex = $rawStatistics["player1Wins"] + $rawStatistics["draws"];
+                        $twox = $rawStatistics["player2Wins"] + $rawStatistics["draws"];
+                        $both = $rawStatistics["player1Wins"] + $rawStatistics["player2Wins"];
+
+                        $onexlastten = $rawStatistics["player1WinsLastTen"] + $rawStatistics["drawLastTen"];
+                        $twoxlastten = $rawStatistics["player2WinsLastTen"] + $rawStatistics["drawLastTen"];
+                        $bothlastten = $rawStatistics["player1WinsLastTen"] + $rawStatistics["player2WinsLastTen"];
+
+                        $matches = $rawStatistics["matches"];
+
                         $inplayMatch["doublechance"] = [
                             "onex" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+2]["OD"]),
-                                "lastten" => "80%",
-                                "all" => "53%"
+                                "lastten" => round(($onexlastten / 10) * 100, 2),
+                                "all" => round(($onex / $matches) * 100, 2)
                             ],
                             "xtwo" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+3]["OD"]),
-                                "lastten" => "80%",
-                                "all" => "53%"
+                                "lastten" => round(($twoxlastten / 10) * 100, 2),
+                                "all" => round(($twox / $matches) * 100, 2)
                             ],
                             "both" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "lastten" => "80%",
-                                "all" => "53%"
+                                "lastten" => round(($bothlastten / 10) * 100, 2),
+                                "all" => round(($both / $matches) * 100, 2)
                             ],
         
                         ];
@@ -262,10 +279,10 @@ Route::get('/odd', function(){
                         // dd($type[$oddkey+2]);
                         $inplayMatch["nextgol"] = [
                             "home" => isset($type[$oddkey+2]["OD"]) ? 
-                                      convertOddToDecimal($type[$oddkey+2]["OD"]) : "0",
+                                      convertOddToDecimal($type[$oddkey+2]["OD"]) : 0,
 
                             "away" => isset($type[$oddkey+4]["OD"]) ? 
-                                      convertOddToDecimal($type[$oddkey+4]["OD"]) : "0"           
+                                      convertOddToDecimal($type[$oddkey+4]["OD"]) : 0           
                         ];
                     }
                 }
@@ -282,7 +299,7 @@ Route::get('/odd', function(){
 
 Route::get('/ended', function(){
 
-    $page = 1000;
+    $page = 1001;
     $perPage;
     $total;
 
@@ -346,6 +363,12 @@ Route::get('/ended', function(){
     return 'done';
 });
 
-Route::get('/test', function() {
-    return 'test';
+Route::get('/testdb', function() {
+    // $test = Match::where("home_player", "Quavo")->get()->toArray();
+
+    $test = Stats::statistics('Quavo', 'Walker');
+
+    // $statistics = Stats::overAndUnderMatchGoals('Quavo', 'Walker', "1.5");
+
+    return $test;
 });
