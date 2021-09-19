@@ -12,20 +12,22 @@ class Stats {
     ->json();
 
     $stats = [
-      "attacks" => [
+        "timer" => isset($response["results"][0]["timer"]["tm"]) ? 
+                    $response["results"][0]["timer"]["tm"] : "0",
+        "attacks" => [
         "home" => isset($response["results"][0]["stats"]["attacks"][0]) ? 
-                  $response["results"][0]["stats"]["attacks"][0] : "0",
-                  
+                    $response["results"][0]["stats"]["attacks"][0] : "0",
+                    
         "away" => isset($response["results"][0]["stats"]["attacks"][1]) ? 
-                  $response["results"][0]["stats"]["attacks"][1] : "0"
-      ],
-      "dangerousattacks" => [
+                    $response["results"][0]["stats"]["attacks"][1] : "0"
+        ],
+        "dangerousattacks" => [
         "home" => isset($response["results"][0]["stats"]["dangerous_attacks"][0]) ? 
-                  $response["results"][0]["stats"]["dangerous_attacks"][0] : "0",
+                    $response["results"][0]["stats"]["dangerous_attacks"][0] : "0",
 
         "away" => isset($response["results"][0]["stats"]["dangerous_attacks"][1]) ? 
-                  $response["results"][0]["stats"]["dangerous_attacks"][1] : "0",
-      ]
+                    $response["results"][0]["stats"]["dangerous_attacks"][1] : "0",
+        ]
     ];
 
     return $stats;
@@ -36,16 +38,16 @@ class Stats {
     // $result = Http::get($url);
 
     $statistics = Match::where([
-      'home_player' => 'Quavo',
-      'away_player' => 'Walker'
+      'home_player' => $home,
+      'away_player' => $away
       ])
       ->get()
       ->toArray();
 
     // dd($statistics);
 
-    $player1 = 'Quavo';
-    $player2 = 'Walker';
+    $player1 = $home;
+    $player2 = $away;
 
     $player1Goals = 0;
     $player2Goals = 0;
@@ -402,5 +404,69 @@ class Stats {
     ];
 
     return $return;
+  }
+
+  public static function headToHead($home, $away) {
+    $lastFiveHome = Match::where('home_player', $home)
+                            ->orWhere('away_player', $home)
+                            ->orderBy('match_date', 'DESC')
+                            ->limit(5)
+                            ->get()
+                            ->toArray();
+
+    $lastFiveAway = Match::where('home_player', $away)
+                        ->orWhere('away_player', $away)
+                        ->orderBy('match_date', 'DESC')
+                        ->limit(5)
+                        ->get()
+                        ->toArray();
+
+    $playerVsPlayer = Match::where([
+        'home_player' => $home,
+        'away_player' => $away
+    ])
+    ->orderBy('match_date', 'DESC')
+    ->get()
+    ->toArray();
+
+    $overs = [
+        "1.5" => 0,
+        "2.5" => 0,
+        "3.5" => 0,
+        "4.5" => 0,
+        "5.5" => 0,
+        "6.5" => 0,
+        "7.5" => 0,
+        "8.5" => 0,
+        "9.5" => 0,
+        "10.5" => 0,   
+    ];
+
+    $oversPercentage = array();
+
+    foreach($playerVsPlayer as $event) {
+        $score = explode('-', $event["score"]);
+        $sumScore = $score[0] + $score[1];
+        for($handcapControl = 1.5; $handcapControl <= 10.5; $handcapControl++){
+            
+            if($sumScore > $handcapControl){
+                $overs["{$handcapControl}"]++;
+            }
+        }
+    }
+
+    // Convert overs to percentage
+    foreach($overs as $key => $over) {
+        if($over != 0 && $playerVsPlayer != 0){
+            $oversPercentage[$key] = round(($over / count($playerVsPlayer)) * 100, 2);
+        }
+    }
+
+    return[
+        'lastFiveHome' => $lastFiveHome,
+        'lastFiveAway' => $lastFiveAway,
+        'overs' => $oversPercentage,
+        'playerVsPlayer' => $playerVsPlayer
+    ];
   }
 }

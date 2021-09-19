@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\User;
 use App\Models\Match;
 use \App\Functions\Stats;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +23,34 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::group([
+
+    'middleware' => 'api',
+
+], function ($router) {
+
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/me', [AuthController::class, 'me']);
+
+});
+
+// create a user route
+Route::post('/user-create', function (Request $request) {
+    try{
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
+    } catch(\Exception $e) {
+        return response(['Message'=>$e->getMessage()], 400);
+    }    
+
+    return 'Created';
+});
+
 Route::get('/odd', function(){
     function convertOddToDecimal($odd) {
         $explodeOdd = explode("/", $odd);
@@ -31,7 +61,7 @@ Route::get('/odd', function(){
 
             return $convertedOdd;
         } else {
-            return 'is not possible to convert';
+            return 1;
         }
     }
 
@@ -56,15 +86,13 @@ Route::get('/odd', function(){
     $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
     ->json();
 
-    if($inplayFilter8min["results"] != [] && $inplayFilter["results"] != []){
-        $games = array_merge($inplayFilter8min["results"], $inplayFilter["results"]);
-    } elseif($inplayFilter8min["results"] != []) {
-        $games = $inplayFilter8min["results"];
-    } elseif($inplayFilter["results"] != []) {
-        $games = $inplayFilter["results"];
-    } else {
+    $games = array_merge($inplayFilter8min["results"], $inplayFilter["results"]);
+
+    // Return if have no games inplay
+    if(empty($games)){
         return "No games inplay";
     }
+
     // Push IDs into array of matches IDs
     foreach ($games as $key => $match) {
 
@@ -86,7 +114,7 @@ Route::get('/odd', function(){
         // Initiate match schema
         $inplayMatch = [
             "id" => $match["id"],
-            "time" => $match["time_status"],
+            "time" => $stats["timer"],
             "league" => $match["league"]["name"],
             "home" => [
                 "name" => $home["name"],
@@ -254,21 +282,28 @@ Route::get('/odd', function(){
 
                         $matches = $rawStatistics["matches"];
 
+                        $nonZero = 1;
+
+                        // Treat zero
+                        if($matches == 0) {
+                            $nonZero = 0;
+                        }
+
                         $inplayMatch["doublechance"] = [
                             "onex" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+2]["OD"]),
-                                "lastten" => round(($onexlastten / 10) * 100, 2),
-                                "all" => round(($onex / $matches) * 100, 2)
+                                "lastten" => $nonZero ? round(($onexlastten / 10) * 100, 2) : 0,
+                                "all" => $nonZero ? round(($onex / $matches) * 100, 2) : 0
                             ],
                             "xtwo" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+3]["OD"]),
-                                "lastten" => round(($twoxlastten / 10) * 100, 2),
-                                "all" => round(($twox / $matches) * 100, 2)
+                                "lastten" => $nonZero ? round(($twoxlastten / 10) * 100, 2) : 0,
+                                "all" => $nonZero ? round(($twox / $matches) * 100, 2) : 0
                             ],
                             "both" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                "lastten" => round(($bothlastten / 10) * 100, 2),
-                                "all" => round(($both / $matches) * 100, 2)
+                                "lastten" => $nonZero ? round(($bothlastten / 10) * 100, 2) : 0,
+                                "all" => $nonZero ? round(($both / $matches) * 100, 2) : 0
                             ],
         
                         ];
@@ -295,6 +330,44 @@ Route::get('/odd', function(){
     }
 
     return $inplayMatchs;
+});
+
+Route::post('/headtohead', function(Request $request){
+    $home = $request->home;
+    $away = $request->away;
+
+    $statistics = Stats::statistics($home, $away);
+    $headtohead = Stats::headToHead($home, $away);
+
+    $bothScoreYes = 0; $goalAvarageHome = 0; $goalAvarageAway = 0;
+
+
+    // Treat zeros
+    if(
+        $statistics["bothToScore"] != 0 &&
+        $statistics["player2Goals"] != 0 &&
+        $statistics["matches"] != 0
+
+    ) {
+        $bothScoreYes = round(($statistics["bothToScore"] / $statistics["matches"]) *100, 2);
+        $goalAvarageHome = round($statistics["player1Goals"] / $statistics["matches"], 2);
+        $goalAvarageAway = round($statistics["player2Goals"] / $statistics["matches"], 2);
+    }
+
+    $generalStats = [
+        "homeWinsPerc" => $statistics["player1WinsPerc"],
+        "awayWinsPerc" => $statistics["player2WinsPerc"],
+        "drawsPerc" => $statistics["player2WinsPerc"],
+        "matchesCount" => $statistics["matches"],
+        "bothScoreYes" => $bothScoreYes,
+        "goalAvarageHome" => $goalAvarageHome,
+        "goalAvarageAway" => $goalAvarageAway,
+
+    ];
+
+    $mergedArrays = array_merge($generalStats, $headtohead);
+
+    return $mergedArrays;
 });
 
 Route::get('/ended', function(){
@@ -367,6 +440,7 @@ Route::get('/testdb', function() {
     // $test = Match::where("home_player", "Quavo")->get()->toArray();
 
     $test = Stats::statistics('Quavo', 'Walker');
+    // $test = Stats::headToHead('Void', 'fleshka77');
 
     // $statistics = Stats::overAndUnderMatchGoals('Quavo', 'Walker', "1.5");
 
