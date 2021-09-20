@@ -4,6 +4,7 @@ use App\Models\User;
 use App\Models\Match;
 use \App\Functions\Stats;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -52,7 +53,7 @@ Route::post('/user-create', function (Request $request) {
             User::create([
                 'name' => $customerExplode[0],
                 'email' => $customerExplode[1],
-                'password' => $customerExplode[2],
+                'password' => Hash::make($customerExplode[2]),
             ]);
         } catch(\Exception $e) {
             return response(['Message'=>$e->getMessage()], 400);
