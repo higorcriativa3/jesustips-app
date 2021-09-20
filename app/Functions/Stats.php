@@ -3,6 +3,7 @@
 namespace App\Functions;
 
 use App\Models\Match;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
 class Stats {
@@ -37,12 +38,19 @@ class Stats {
     // $url = 'https://api.b365api.com/v1/team?token='. env('API_TOKEN') . '&sport_id=1';
     // $result = Http::get($url);
 
-    $statistics = Match::where([
-      'home_player' => $home,
-      'away_player' => $away
-      ])
-      ->get()
-      ->toArray();
+    // dd($home);
+
+    $statistics1 = Match::where('home_player', 'LIKE', "%{$home}%")
+        ->where('away_player', 'LIKE', "%{$away}%")
+        ->get()
+        ->toArray();
+
+    $statistics2 = Match::where('home_player', 'LIKE', "%{$away}%")
+    ->where('away_player', 'LIKE', "%{$home}%")
+    ->get()
+    ->toArray();
+
+    $statistics = array_merge($statistics1, $statistics2);
 
     // dd($statistics);
 
@@ -231,10 +239,8 @@ class Stats {
   }
 
   public static function overAndUnderMatchGoals($home, $away, $odd) {
-    $results = Match::where([
-        'home_player' => $home,
-        'away_player' => $away
-        ])
+    $results = Match::where('home_player', 'LIKE', "%{$home}%")
+        ->where('away_player', 'LIKE', "%{$away}%")
         ->orderBy('match_date', 'DESC')
         ->get()
         ->toArray();
@@ -307,10 +313,8 @@ class Stats {
   }
 
   public static function overAndUnderHomeAway($home, $away, $odd) {
-    $results = Match::where([
-        'home_player' => $home,
-        'away_player' => $away
-        ])
+    $results = Match::where('home_player', 'LIKE', "%{$home}%")
+        ->where('away_player', 'LIKE', "%{$away}%")
         ->orderBy('match_date', 'DESC')
         ->get()
         ->toArray();
@@ -431,27 +435,37 @@ class Stats {
   }
 
   public static function headToHead($home, $away) {
-    $lastFiveHome = Match::where('home_player', $home)
-                            ->orWhere('away_player', $home)
+    $lastFiveHome = Match::where('home_player', 'LIKE', "%{$home}%")
+                            ->orWhere('away_player', 'LIKE', "%{$home}%")
                             ->orderBy('match_date', 'DESC')
                             ->limit(5)
                             ->get()
                             ->toArray();
 
-    $lastFiveAway = Match::where('home_player', $away)
-                        ->orWhere('away_player', $away)
+    $lastFiveAway = Match::where('home_player','LIKE', "%{$away}%")
+                        ->orWhere('away_player', 'LIKE', "%{$away}%")
                         ->orderBy('match_date', 'DESC')
                         ->limit(5)
                         ->get()
                         ->toArray();
 
-    $playerVsPlayer = Match::where([
-        'home_player' => $home,
-        'away_player' => $away
-    ])
+    $playerVsPlayer1 = Match::where('home_player', 'LIKE', "%{$home}%")
+    ->where('away_player', 'LIKE', "%{$away}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
+
+    $playerVsPlayer2 = Match::where('home_player', 'LIKE', "%{$away}%")
+    ->where('away_player', 'LIKE', "%{$home}%")
+    ->orderBy('match_date', 'DESC')
+    ->get()
+    ->toArray();
+
+    // DB::table('matches')
+    // ->select('*')
+    // ->where(DB::raw('lower(home_player)'), 'like', '%' . strtolower($home) . '%');
+
+    $playerVsPlayer = array_merge($playerVsPlayer1, $playerVsPlayer2);
 
     $overs = [
         "1.5" => 0,

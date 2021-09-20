@@ -102,7 +102,7 @@ Route::get('/odd', function(){
         $home = dividePlayerAndTeam($match["home"]["name"]);
         $away = dividePlayerAndTeam($match["away"]["name"]);
          
-        $rawStatistics = Stats::statistics($home, $away);
+        $rawStatistics = Stats::statistics($home["name"], $away["name"]);
 
         // dd($statistics);
 
