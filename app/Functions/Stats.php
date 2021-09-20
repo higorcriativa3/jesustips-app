@@ -313,8 +313,8 @@ class Stats {
   }
 
   public static function overAndUnderHomeAway($home, $away, $odd) {
-    $results = Match::where('home_player', 'LIKE', "%{$home}%")
-        ->where('away_player', 'LIKE', "%{$away}%")
+    $results = Match::where('home_player', 'LIKE', "%{$home['name']}%")
+        ->where('away_player', 'LIKE', "%{$away['name']}%")
         ->orderBy('match_date', 'DESC')
         ->get()
         ->toArray();
