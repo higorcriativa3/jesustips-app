@@ -331,8 +331,13 @@ class Stats {
     $eventCount = 0;
 
     foreach($results as $key => $event){
-        $score = explode("-", $event['score']);
-        $sumScore = $score[0] + $score[1];
+        if($event['score'] && $event['score'] != "") {
+            $score = explode("-", $event['score']);
+            $sumScore = $score[0] + $score[1];
+        } else {
+            $sumScore = $score[0] + $score[1];
+        }
+        
 
         if($score[0] > $odd) {
             $homeOverCount++;
@@ -463,8 +468,11 @@ class Stats {
     $oversPercentage = array();
 
     foreach($playerVsPlayer as $event) {
-        $score = explode('-', $event["score"]);
-        $sumScore = $score[0] + $score[1];
+        if($event["score"] && $event["score"] != "") {
+            $score = explode('-', $event["score"]);
+            $sumScore = $score[0] + $score[1];
+        }
+        
         for($handcapControl = 1.5; $handcapControl <= 10.5; $handcapControl++){
             
             if($sumScore > $handcapControl){
