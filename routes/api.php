@@ -38,15 +38,28 @@ Route::group([
 
 // create a user route
 Route::post('/user-create', function (Request $request) {
-    try{
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
-    } catch(\Exception $e) {
-        return response(['Message'=>$e->getMessage()], 400);
-    }    
+    $file = 'Lista.csv';
+    $csv = file_get_contents(base_path("storage/app/Lista.csv"));
+    $array = array_map('str_getcsv', explode(PHP_EOL, $csv));
+
+    $json = json_encode($array);
+
+    foreach($array as $customer){
+        $customerExplode = explode(",", $customer[0]);
+        // dd($customerExplode[2]);
+
+        try{
+            User::create([
+                'name' => $customerExplode[0],
+                'email' => $customerExplode[1],
+                'password' => $customerExplode[2],
+            ]);
+        } catch(\Exception $e) {
+            return response(['Message'=>$e->getMessage()], 400);
+        } 
+    }
+
+       
 
     return 'Created';
 });
