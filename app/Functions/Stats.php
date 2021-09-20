@@ -255,6 +255,7 @@ class Stats {
             $score = explode("-", $event['score']);
             $sumScore = $score[0] + $score[1];
         } else {
+
             $sumScore = 0;
         }
         
@@ -335,7 +336,7 @@ class Stats {
             $score = explode("-", $event['score']);
             $sumScore = $score[0] + $score[1];
         } else {
-            $sumScore = $score[0] + $score[1];
+            $sumScore = 0;
         }
         
 
