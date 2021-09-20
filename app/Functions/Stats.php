@@ -471,6 +471,8 @@ class Stats {
         if($event["score"] && $event["score"] != "") {
             $score = explode('-', $event["score"]);
             $sumScore = $score[0] + $score[1];
+        } else {
+            $sumScore = 0;
         }
         
         for($handcapControl = 1.5; $handcapControl <= 10.5; $handcapControl++){
