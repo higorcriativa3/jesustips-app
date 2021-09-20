@@ -99,11 +99,24 @@ class Stats {
 
         // dd($event["away"]["name"]);
         // Get team goals
-        $scoreExploded = explode('-', $event["score"]);
-        $homeGoals = intval($scoreExploded[0]);
-        $awayGoals = intval($scoreExploded[1]);
+        if(isset($event["score"]) && $event["score"] != "") {
+            $scoreExploded = explode('-', $event["score"]);
 
-        $totalGoals = $homeGoals + $awayGoals;
+
+            $homeGoals = intval($scoreExploded[0]);
+            $awayGoals = intval($scoreExploded[1]);
+
+            $totalGoals = $homeGoals + $awayGoals;
+        } else {
+            $scoreExploded = 0;
+
+
+            $homeGoals = 0;
+            $awayGoals = 0;
+
+            $totalGoals = 0;
+        }
+        
 
         if($totalGoals > 1.5) {
             $overGoals1dot5++;
@@ -238,8 +251,13 @@ class Stats {
     $lastTenUnder = 0;
 
     foreach($results as $key => $event){
-        $score = explode("-", $event['score']);
-        $sumScore = $score[0] + $score[1];
+        if($event['score'] && $event['score'] != "" ){
+            $score = explode("-", $event['score']);
+            $sumScore = $score[0] + $score[1];
+        } else {
+            $sumScore = 0;
+        }
+        
 
         if($sumScore > $odd) {
             $overCount++;
