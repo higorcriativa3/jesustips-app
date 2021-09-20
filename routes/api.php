@@ -372,7 +372,7 @@ Route::post('/headtohead', function(Request $request){
 
 Route::get('/ended', function(){
 
-    $page = 1001;
+    $page = 1;
     $perPage;
     $total;
 
@@ -393,7 +393,7 @@ Route::get('/ended', function(){
         return $dt->format('Y-m-d H:i:s'); // output = 2017-01-01 00:00:00
     }
 
-    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22821&token=91390-4sDwuMJTtIhuPJ&page=';
+    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ&page=';
 
     do{
         $response = Http::get($url . $page)->json();
