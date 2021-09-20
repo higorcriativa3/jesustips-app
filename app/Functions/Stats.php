@@ -340,6 +340,7 @@ class Stats {
             $score = explode("-", $event['score']);
             $sumScore = $score[0] + $score[1];
         } else {
+            $score = [0,0];
             $sumScore = 0;
         }
         
