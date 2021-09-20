@@ -114,6 +114,7 @@ Route::get('/odd', function(){
         // Initiate match schema
         $inplayMatch = [
             "id" => $match["id"],
+            "bet365id" => $match["ev_id"],
             "time" => $stats["timer"],
             "league" => $match["league"]["name"],
             "home" => [
