@@ -66,7 +66,7 @@ Route::post('/user-create-csv', function (Request $request) {
 });
 
 // create a user route
-Route::post('/user-create-csv', function (Request $request) {
+Route::post('/user-create', function (Request $request) {
 
         try{
             User::create([
