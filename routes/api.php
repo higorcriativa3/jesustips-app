@@ -426,8 +426,9 @@ Route::get('/ended/livearena', function(){
             $away = dividePlayerAndTeam($match["away"]["name"]);
 
             try{
-                $newMatch = Match::firstOrCreate([
-                    "match_id" => $match["id"],
+                $newMatch = Match::firstOrCreate(
+                    ["match_id" => $match["id"]],
+                    [
                     "match_date" => convertEpochToDateTime($match["time"]),
                     "league_id" => $match["league"]["id"],
                     "league_name" => $match["league"]["name"],
@@ -492,17 +493,19 @@ Route::get('/ended/8min', function(){
             $away = dividePlayerAndTeam($match["away"]["name"]);
 
             try{
-                $newMatch = Match::firstOrCreate([
-                    "match_id" => $match["id"],
-                    "match_date" => convertEpochToDateTime($match["time"]),
-                    "league_id" => $match["league"]["id"],
-                    "league_name" => $match["league"]["name"],
-                    "home_player" => $home["name"],
-                    "home_team" => $home["team"],
-                    "away_player" => $away["name"],
-                    "away_team" => $away["team"],
-                    "score" => $match["ss"],
-                ]);
+                $newMatch = Match::firstOrCreate(
+                    ["match_id" => $match["id"]],
+                    [
+                        "match_date" => convertEpochToDateTime($match["time"]),
+                        "league_id" => $match["league"]["id"],
+                        "league_name" => $match["league"]["name"],
+                        "home_player" => $home["name"],
+                        "home_team" => $home["team"],
+                        "away_player" => $away["name"],
+                        "away_team" => $away["team"],
+                        "score" => $match["ss"],
+                    ]
+                );
             }catch(\Exception $e) {
                 return $e->getMessage();
             }
