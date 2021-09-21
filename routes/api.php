@@ -385,7 +385,7 @@ Route::post('/headtohead', function(Request $request){
     return $mergedArrays;
 });
 
-Route::get('/ended', function(){
+Route::get('/ended/livearena', function(){
 
     $page = 1;
     $perPage;
@@ -408,7 +408,7 @@ Route::get('/ended', function(){
         return $dt->format('Y-m-d H:i:s'); // output = 2017-01-01 00:00:00
     }
 
-    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ&page=';
+    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22821&token=91390-4sDwuMJTtIhuPJ&page=';
 
     do{
         $response = Http::get($url . $page)->json();
@@ -445,6 +445,72 @@ Route::get('/ended', function(){
         $page++;
 
         file_put_contents(base_path("storage/app/pageControl.txt"), $page);
+        
+    } while($page < 1001);
+
+    return 'done';
+});
+
+Route::get('/ended/8min', function(){
+
+    $page = 1;
+    $perPage;
+    $total;
+
+    function dividePlayerAndTeam($string) {
+        $team = explode("(", $string);
+        $name = explode(")", $team[1]);
+
+        $obj = [
+            "name" => trim($name[0]),
+            "team" => trim($team[0]),
+        ];
+
+        return $obj;
+    }
+
+    function convertEpochToDateTime($epoch) {
+        $dt = new DateTime("@$epoch");  // convert UNIX timestamp to PHP DateTime
+        return $dt->format('Y-m-d H:i:s'); // output = 2017-01-01 00:00:00
+    }
+
+    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22614&token=91390-4sDwuMJTtIhuPJ&page=';
+
+    do{
+        $response = Http::get($url . $page)->json();
+
+        if(!isset($response["success"])) {
+            if($response["success"] != 1) {
+                return response(["message" => "error: {$response["error_detail"]}"], 500);
+            }  
+        }
+        $per_page = $response['pager']['per_page'];
+        $total = $response['pager']['total'];
+
+        foreach($response['results'] as $key => $match) {
+            $home = dividePlayerAndTeam($match["home"]["name"]);
+            $away = dividePlayerAndTeam($match["away"]["name"]);
+
+            try{
+                $newMatch = Match::create([
+                    "match_id" => $match["id"],
+                    "match_date" => convertEpochToDateTime($match["time"]),
+                    "league_id" => $match["league"]["id"],
+                    "league_name" => $match["league"]["name"],
+                    "home_player" => $home["name"],
+                    "home_team" => $home["team"],
+                    "away_player" => $away["name"],
+                    "away_team" => $away["team"],
+                    "score" => $match["ss"],
+                ]);
+            }catch(\Exception $e) {
+                return $e->getMessage();
+            }
+        }
+
+        $page++;
+
+        file_put_contents(base_path("storage/app/pageControl2.txt"), $page);
         
     } while($page < 1001);
 
