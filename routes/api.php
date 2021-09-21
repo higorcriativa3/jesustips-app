@@ -426,7 +426,7 @@ Route::get('/ended/livearena', function(){
             $away = dividePlayerAndTeam($match["away"]["name"]);
 
             try{
-                $newMatch = Match::create([
+                $newMatch = Match::firstOrCreate([
                     "match_id" => $match["id"],
                     "match_date" => convertEpochToDateTime($match["time"]),
                     "league_id" => $match["league"]["id"],
@@ -492,7 +492,7 @@ Route::get('/ended/8min', function(){
             $away = dividePlayerAndTeam($match["away"]["name"]);
 
             try{
-                $newMatch = Match::create([
+                $newMatch = Match::firstOrCreate([
                     "match_id" => $match["id"],
                     "match_date" => convertEpochToDateTime($match["time"]),
                     "league_id" => $match["league"]["id"],
