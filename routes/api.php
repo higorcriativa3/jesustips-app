@@ -261,6 +261,10 @@ Route::get('/odd', function(){
                         $lastTen = $rawStatistics["bothToScoreLastTen"];
                         $all = $rawStatistics["bothToScore"];
                         $matches = $rawStatistics["matches"];
+                        
+                        if($matches == 0) {
+                            $matches == 1;
+                        }
 
                         // dd([$all, $matches]);
 
