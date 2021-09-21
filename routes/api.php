@@ -37,8 +37,8 @@ Route::group([
 
 });
 
-// create a user route
-Route::post('/user-create', function (Request $request) {
+// create a user by csv route
+Route::post('/user-create-csv', function (Request $request) {
     $file = 'Lista.csv';
     $csv = file_get_contents(base_path("storage/app/Lista.csv"));
     $array = array_map('str_getcsv', explode(PHP_EOL, $csv));
@@ -59,6 +59,24 @@ Route::post('/user-create', function (Request $request) {
             return response(['Message'=>$e->getMessage()], 400);
         } 
     }
+
+       
+
+    return 'Created';
+});
+
+// create a user route
+Route::post('/user-create-csv', function (Request $request) {
+
+        try{
+            User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+        } catch(\Exception $e) {
+            return response(['Message'=>$e->getMessage()], 400);
+        } 
 
        
 
