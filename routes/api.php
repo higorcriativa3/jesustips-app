@@ -37,8 +37,8 @@ Route::group([
 
 });
 
-// create a user route
-Route::post('/user-create', function (Request $request) {
+// create a user by csv route
+Route::post('/user-create-csv', function (Request $request) {
     $file = 'Lista.csv';
     $csv = file_get_contents(base_path("storage/app/Lista.csv"));
     $array = array_map('str_getcsv', explode(PHP_EOL, $csv));
@@ -65,7 +65,26 @@ Route::post('/user-create', function (Request $request) {
     return 'Created';
 });
 
+// create a user route
+Route::post('/user-create', function (Request $request) {
+
+        try{
+            User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
+        } catch(\Exception $e) {
+            return response(['Message'=>$e->getMessage()], 400);
+        } 
+
+       
+
+    return 'Created';
+});
+
 Route::get('/odd', function(){
+    ini_set('max_execution_time', 60000);
     function convertOddToDecimal($odd) {
         $explodeOdd = explode("/", $odd);
         if($explodeOdd[0] != 0 && $explodeOdd[1] != 0) {
@@ -261,6 +280,10 @@ Route::get('/odd', function(){
                         $lastTen = $rawStatistics["bothToScoreLastTen"];
                         $all = $rawStatistics["bothToScore"];
                         $matches = $rawStatistics["matches"];
+                        
+                        if($matches == 0) {
+                            $matches == 1;
+                        }
 
                         // dd([$all, $matches]);
 
@@ -348,6 +371,7 @@ Route::get('/odd', function(){
 });
 
 Route::post('/headtohead', function(Request $request){
+    ini_set('max_execution_time', 60000);
     $home = $request->home;
     $away = $request->away;
 
