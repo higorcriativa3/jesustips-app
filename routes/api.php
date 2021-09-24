@@ -271,7 +271,7 @@ Route::get('/odd', function(){
                             "under" => [
                                 "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
                                 "lastten" => $stats["away"]["under"]["lastten"],
-                                "all" => $stats["away"]["over"]["all"]
+                                "all" => $stats["away"]["under"]["all"]
                             ]
                         ];
                     }
