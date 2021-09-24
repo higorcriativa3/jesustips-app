@@ -282,7 +282,15 @@ Route::get('/odd', function(){
                         $matches = $rawStatistics["matches"];
                         
                         if($matches == 0) {
-                            $matches == 1;
+                            $matches = 1;
+                        }
+
+                        if($all == 0) {
+                            $all = 1;
+                        }
+
+                        if($lastTen == 0) {
+                            $lastTen = 1;
                         }
 
                         // dd([$all, $matches]);
