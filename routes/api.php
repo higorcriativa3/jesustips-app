@@ -84,7 +84,8 @@ Route::post('/user-create', function (Request $request) {
 });
 
 Route::get('/odd', function(){
-    ini_set('max_execution_time', 60000);
+    ini_set("memory_limit", "-1");
+    set_time_limit(0);
     function convertOddToDecimal($odd) {
         $explodeOdd = explode("/", $odd);
         if($explodeOdd[0] != 0 && $explodeOdd[1] != 0) {
@@ -379,7 +380,8 @@ Route::get('/odd', function(){
 });
 
 Route::post('/headtohead', function(Request $request){
-    ini_set('max_execution_time', 60000);
+    ini_set("memory_limit", "-1");
+    set_time_limit(0);
     $home = $request->home;
     $away = $request->away;
 
