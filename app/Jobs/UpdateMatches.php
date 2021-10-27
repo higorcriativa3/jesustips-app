@@ -6,27 +6,18 @@ use App\Models\Match;
 use App\Functions\Helpers;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+// use Illuminate\Contracts\Queue\ShouldQueue;
+// use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class UpdateMatches implements ShouldQueue, ShouldBeUnique
+class UpdateMatches
 {
-  /**
-   * Create a new job instance.
-   *
-   * @return void
-   */
-  public function __construct()
-  {
-      //
-  }
 
   /**
    * Execute the job.
    *
    * @return void
    */
-  public function handle() {
+  public function __invoke() {
     $rawPreviousDate = Carbon::yesterday()->format('Y-m-d');
     $yesterday = str_replace('-', '', $rawPreviousDate);
     // $matches = Http::get();
@@ -78,7 +69,7 @@ class UpdateMatches implements ShouldQueue, ShouldBeUnique
 
                 //     $json = json_encode($newMatch);
 
-                //     file_put_contents(base_path("storage/app/testcron.json"), $json);
+                    file_put_contents(base_path("storage/app/pageControl.txt"), "Success");
             }catch(\Exception $e) {
                 return $e->getMessage();
             }

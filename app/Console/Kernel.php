@@ -29,7 +29,7 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
 
         // $schedule->job(new Inplay)->everyMinute();
-        $schedule->job(new UpdateMatches)->dailyAt('01:00');
+        $schedule->call(new UpdateMatches)->dailyAt('13:22');
     }
 
     /**
