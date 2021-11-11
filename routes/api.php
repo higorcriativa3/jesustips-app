@@ -1,15 +1,16 @@
 <?php
 
-use App\Models\Match;
-use App\Functions\Helpers;
-use \App\Functions\Stats;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Http;
+use App\Models\Match;
+use \App\Functions\Stats;
+use App\Functions\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CustomerController;
 
 /*
 |--------------------------------------------------------------------------
@@ -605,3 +606,6 @@ Route::post('/headtohead/22', function(Request $request){
 
     return $mergedArrays;
 });
+
+Route::get('/customers', [CustomerController::class, 'index']);
+

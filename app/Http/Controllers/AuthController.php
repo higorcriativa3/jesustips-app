@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -26,8 +27,29 @@ class AuthController extends Controller
     {
         $credentials = request(['email', 'password']);
 
+        // dd($status);
+
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            try {
+                $customerResponse = DB::connection('mysqlWc')
+                ->select("select * from wprk_wc_customer_lookup where email='" . $credentials['email'] . "'");
+
+                $customer = collect($customerResponse);
+                $customerId = $customer->pluck('customer_id');
+
+                $orderResponse = DB::connection('mysqlWc')
+                ->select("select * from wprk_wc_order_stats where customer_id=". $customerId[0] ."", array(1));
+                $order = collect($orderResponse);
+                $orderStatus = $order->pluck("status");
+                $status = $orderStatus[0] == "wc-processing" ? 1 : 0;
+
+                if($status){
+                    return $this->respondWithToken('token-from-woocommerce');
+                }
+            } catch (\Throwable $th) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            
         }
 
         return $this->respondWithToken($token);
