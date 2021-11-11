@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 
-class Inplay
+class InplayFifa22
 {
 
   /**
@@ -22,30 +22,30 @@ class Inplay
    * @return void
    */
   public function __invoke() {
-	function convertOddToDecimal($odd) {
-            $explodeOdd = explode("/", $odd);
-            if($explodeOdd[0] != 0 && $explodeOdd[1] != 0) {
-                $numerator = $explodeOdd[0];
-                $denominator = $explodeOdd[1];
-                $convertedOdd = (intval($numerator)/intval($denominator)) + 1;
+	//function convertOddToDecimal($odd) {
+        //    $explodeOdd = explode("/", $odd);
+        ////    if($explodeOdd[0] != 0 && $explodeOdd[1] != 0) {
+         //       $numerator = $explodeOdd[0];
+         //       $denominator = $explodeOdd[1];
+         //       $convertedOdd = (intval($numerator)/intval($denominator)) + 1;
     
-                return $convertedOdd;
-            } else {
-                return 1;
-            }
-        }
+          //      return $convertedOdd;
+          //  } else {
+          //      return 1;
+           // }
+        //}
     
-        function dividePlayerAndTeam($string) {
-            $team = explode("(", $string);
-            $name = explode(")", $team[1]);
+       // function dividePlayerAndTeam($string) {
+          //  $team = explode("(", $string);
+          //  $name = explode(")", $team[1]);
     
-            $obj = [
-                "name" => trim($name[0]),
-                "team" => trim($team[0]),
-            ];
+           // $obj = [
+           //     "name" => trim($name[0]),
+           //     "team" => trim($team[0]),
+           // ];
     
-            return $obj;
-        }
+           // return $obj;
+        //}
 
         // Execute every second
         $count = 0;
@@ -59,10 +59,10 @@ class Inplay
             $inplayFilter = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10048139&token=91390-4sDwuMJTtIhuPJ")
             ->json();
         
-            $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
-            ->json();
+            // $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
+            // ->json();
         
-            $games = array_merge($inplayFilter8min["results"], $inplayFilter["results"]);
+            $games = $inplayFilter["results"];
         
             // Return if have no games inplay
             if(empty($games)){
@@ -71,14 +71,16 @@ class Inplay
         
             // Push IDs into array of matches IDs
             foreach ($games as $key => $match) {
-        
+              // if($match["league"]["name"] == 'Esoccer Live Arena - 10 mins play') {
+              //   file_put_contents(base_path("storage/app/test10min.txt"), '10min');
+              // }
                 $stats = Stats::attacks($match["our_event_id"]);
                 
         
                 $home = dividePlayerAndTeam($match["home"]["name"]);
                 $away = dividePlayerAndTeam($match["away"]["name"]);
                     
-                $rawStatistics = Stats::statistics($home["name"], $away["name"]);
+                $rawStatistics = Stats::statisticsFifa22($home["name"], $away["name"]);
         
                 // dd($statistics);
         
@@ -151,7 +153,7 @@ class Inplay
         
                             //  goals ft
                             if($odd["NA"] == "Match Goals"){
-                                $stats = Stats::overAndUnderMatchGoals(
+                                $stats = Stats::overAndUnderMatchGoalsFifa22(
                                     $home["name"], 
                                     $away["name"], 
                                     $type[$oddkey+2]["NA"]);
@@ -178,7 +180,7 @@ class Inplay
                             ) 
                             {
                                 
-                                $stats = Stats::overAndUnderHomeAway($home, $away, $type[$oddkey+2]["NA"]);
+                                $stats = Stats::overAndUnderHomeAwayFifa22($home, $away, $type[$oddkey+2]["NA"]);
                                 $inplayMatch["homegols"] = [
                                     "handcap" => $type[$oddkey+2]["NA"],
                                     "over" => [
@@ -201,7 +203,7 @@ class Inplay
                             ) 
                             {
         
-                                $stats = Stats::overAndUnderHomeAway($home, $away, $type[$oddkey+2]["NA"]);
+                                $stats = Stats::overAndUnderHomeAwayFifa22($home, $away, $type[$oddkey+2]["NA"]);
         
                                 $inplayMatch["awaygols"] = [
                                     "handcap" => $type[$oddkey+2]["NA"],
@@ -320,7 +322,7 @@ class Inplay
 
             $inplayJson = json_encode($inplayMatchs);
         
-            file_put_contents(base_path("storage/app/live.json"), $inplayJson);
+            file_put_contents(base_path("storage/app/liveFifa22.json"), $inplayJson);
 
             $endTime = Carbon::now();
             $totalDuration = $endTime->diffInSeconds($startTime);
@@ -335,4 +337,5 @@ class Inplay
   }
     
 }
+
 

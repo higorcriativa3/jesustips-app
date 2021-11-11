@@ -9,10 +9,9 @@ use Illuminate\Support\Facades\Http;
 // use Illuminate\Contracts\Queue\ShouldQueue;
 // use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class UpdateMatches
+class UpdateMatches10Min
 {
-
-  /**
+   /**
    * Execute the job.
    *
    * @return void
@@ -24,7 +23,7 @@ class UpdateMatches
 
     $page = 1;
 
-    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22614&day='.$yesterday.'&token=91390-4sDwuMJTtIhuPJ&page=';
+    $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22821&day='.$yesterday.'&token=91390-4sDwuMJTtIhuPJ&page=';
 
    // file_put_contents(base_path("storage/app/pageControl.txt"), "Success");
     //return "Success";
@@ -74,7 +73,7 @@ class UpdateMatches
 
                     
             }catch(\Exception $e) {
-                file_put_contents(base_path("storage/app/pageControl.txt"), $page . " - " . $yesterday . " - " . $e->getMessage());
+                file_put_contents(base_path("storage/app/pageControl10Min.txt"), $page . " - " . $yesterday . " - " . $e->getMessage());
                 return 0;            }
         }
 
@@ -86,5 +85,5 @@ class UpdateMatches
 
     return 1;
   }
-    
 }
+
