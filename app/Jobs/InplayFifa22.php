@@ -22,30 +22,6 @@ class InplayFifa22
    * @return void
    */
   public function __invoke() {
-	//function convertOddToDecimal($odd) {
-        //    $explodeOdd = explode("/", $odd);
-        ////    if($explodeOdd[0] != 0 && $explodeOdd[1] != 0) {
-         //       $numerator = $explodeOdd[0];
-         //       $denominator = $explodeOdd[1];
-         //       $convertedOdd = (intval($numerator)/intval($denominator)) + 1;
-    
-          //      return $convertedOdd;
-          //  } else {
-          //      return 1;
-           // }
-        //}
-    
-       // function dividePlayerAndTeam($string) {
-          //  $team = explode("(", $string);
-          //  $name = explode(")", $team[1]);
-    
-           // $obj = [
-           //     "name" => trim($name[0]),
-           //     "team" => trim($team[0]),
-           // ];
-    
-           // return $obj;
-        //}
 
         // Execute every second
         $count = 0;
@@ -58,11 +34,11 @@ class InplayFifa22
             // Get inplay events as JSON
             $inplayFilter = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10048139&token=91390-4sDwuMJTtIhuPJ")
             ->json();
-        
-            $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
+
+   		 $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
             ->json();
         
-            $games = array_merge($inplayFilter["results"], $inplayFilter8min["results"]);
+            $games = array_merge($inplayFilter["results"], $inplayFilter8min["results"]); 
         
             // Return if have no games inplay
             if(empty($games)){
