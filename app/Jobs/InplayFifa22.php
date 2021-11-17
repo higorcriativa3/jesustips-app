@@ -58,11 +58,11 @@ class InplayFifa22
             // Get inplay events as JSON
             $inplayFilter = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10048139&token=91390-4sDwuMJTtIhuPJ")
             ->json();
+
+   		 $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
+            ->json();
         
-            // $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
-            // ->json();
-        
-            $games = $inplayFilter["results"];
+            $games = array_merge($inplayFilter["results"], $inplayFilter8min["results"]); 
         
             // Return if have no games inplay
             if(empty($games)){

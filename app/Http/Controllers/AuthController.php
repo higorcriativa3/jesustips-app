@@ -40,7 +40,7 @@ class AuthController extends Controller
                 $orderResponse = DB::connection('mysqlWc')
                 ->select("select * from wprk_wc_order_stats where customer_id=". $customerId[0] ."", array(1));
                 $order = collect($orderResponse);
-                $orderStatus = $order->pluck("status");
+                $orderStatus = $order->where("status", "wc-processing")->pluck("status");
                 $status = $orderStatus[0] == "wc-processing" ? 1 : 0;
 
                 if($status){
