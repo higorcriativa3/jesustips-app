@@ -17,7 +17,9 @@ class CustomerController extends Controller
     public function index()
     {
         $customerResponse = DB::connection('mysqlWc')
-        ->select("select * from wprk_wc_customer_lookup where email='arthur241000@gmail.com'");
+        ->select("select * from wprk_wc_customer_lookup where email='pelegrinimilf111@gmail.com'");
+
+        // return $customerResponse;
 
         $customer = collect($customerResponse);
         $customerId = $customer->pluck('customer_id');
@@ -25,10 +27,10 @@ class CustomerController extends Controller
         $orderResponse = DB::connection('mysqlWc')
         ->select("select * from wprk_wc_order_stats where customer_id=". $customerId[0] ."", array(1));
         $order = collect($orderResponse);
-        $orderStatus = $order->pluck("status");
+        $orderStatus = $order->where("status", "wc-processing")->pluck("status");
         $status = $orderStatus[0] == "wc-processing" ? 1 : 0;
         
-        return $status;
+        return $orderResponse;
     }
 
     /**
@@ -48,9 +50,19 @@ class CustomerController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Request $request)
     {
-        //
+        $customerId = $request->customerId;
+
+        if($request->token == env("FRONT_TOKEN")){
+            $customerResponse = DB::connection('mysqlWc')
+            ->select("select * from wprk_wc_customer_lookup where customer_id='". $customerId ."'");
+
+            return $customerResponse;
+        } else {
+            return response(["Message" => "Unauthorized"], 401);
+        }
+        
     }
 
     /**
