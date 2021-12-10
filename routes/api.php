@@ -2,7 +2,7 @@
 
 use App\Models\User;
 use App\Models\Match;
-use \App\Functions\Stats;
+use App\Functions\Stats;
 use App\Functions\Helpers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -141,7 +141,7 @@ Route::get('/ended/fromdate/{date}', function($date){
     $dates = array();
 
     for(
-        $dateTo = Carbon::parse('2021-10-16'); 
+        $dateTo = Carbon::parse('2021-11-29'); 
         $dateFrom->lt($dateTo); 
         $dateFrom->addDays(1)
     )
@@ -151,7 +151,7 @@ Route::get('/ended/fromdate/{date}', function($date){
         $page = 1;
 
 
-        $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22614&day='.$incrementedDate.'&token=91390-4sDwuMJTtIhuPJ&page=';
+        $url = 'https://api.b365api.com/v2/events/ended?sport_id=1&league_id=22537&day='.$incrementedDate.'&token=91390-4sDwuMJTtIhuPJ&page=';
 
         // $obj = file_get_contents(base_path("storage/app/testFromDate.json"));
 
@@ -609,4 +609,69 @@ Route::post('/headtohead/22', function(Request $request){
 });
 
 Route::get('/customers', [CustomerController::class, 'index']);
+
+Route::post('/players', function (Request $request){
+    $players = Match::where("league_name", "=", $request->league)
+    ->distinct("home_player")
+    ->pluck("home_player");
+
+    return $players;
+});
+
+Route::get('/players/12min', function (Request $request){
+    $players = Match::where("league_name", "=", "Esoccer Liga Pro - 12 mins play")
+    ->distinct("home_team")
+    ->pluck("home_team");
+
+    return $players;
+});
+
+Route::get('/scores', function (){
+    // Initiate scores array
+    $scores = array();
+
+    // Get inplay events as JSON
+    $inplayFilter = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10048139&token=91390-4sDwuMJTtIhuPJ")
+    ->json();
+
+    $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
+    ->json();
+
+    $inplayFilter12min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047670&token=91390-4sDwuMJTtIhuPJ")
+    ->json();
+
+    $games = array_merge($inplayFilter12min["results"], $inplayFilter8min["results"], $inplayFilter["results"]);
+
+    // Return if have no games inplay
+    if(empty($games)){
+        return "No games inplay";
+    }
+
+    // Push IDs into array of matches IDs
+    foreach ($games as $key => $match) {
+
+        $scores[] = [
+            'match_id' => $match["id"],
+            'scores' => $match["ss"],
+        ];
+    }
+
+    return $scores;
+});
+
+Route::get('/testinplay/{home}/{away}', function($home, $away){
+    $rawStatistics = Stats::statistics($home, $away);
+
+    return $rawStatistics;
+});
+
+Route::get("/upcoming/{date}", function($date) {
+    $upcoming8min = Http::get("https://api.b365api.com/v2/events/upcoming?sport_id=1&league_id=22614&day=". $date ."&token=91390-4sDwuMJTtIhuPJ");
+    $upcoming10min = Http::get("https://api.b365api.com/v2/events/upcoming?sport_id=1&league_id=22821&day=". $date ."&token=91390-4sDwuMJTtIhuPJ");
+    $upcoming12min = Http::get("https://api.b365api.com/v2/events/upcoming?sport_id=1&league_id=22537&day=". $date ."&token=91390-4sDwuMJTtIhuPJ");
+
+    $upcoming = array_merge($upcoming8min["results"], $upcoming10min["results"], $upcoming12min["results"]);
+
+    return $upcoming;
+});
 

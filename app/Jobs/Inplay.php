@@ -61,8 +61,11 @@ class Inplay
         
             $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
             ->json();
+
+            $inplayFilter12min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047670&token=91390-4sDwuMJTtIhuPJ")
+            ->json();
         
-            $games = array_merge($inplayFilter8min["results"], $inplayFilter["results"]);
+            $games = array_merge($inplayFilter12min["results"], $inplayFilter8min["results"], $inplayFilter["results"]);
         
             // Return if have no games inplay
             if(empty($games)){
@@ -189,7 +192,7 @@ class Inplay
                                     "under" => [
                                         "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
                                         "lastten" => $stats["home"]["under"]["lastten"],
-                                        "all" => $stats["home"]["under"]["lastten"]
+                                        "all" => $stats["home"]["under"]["all"]
                                     ]
                                 ];
                             }

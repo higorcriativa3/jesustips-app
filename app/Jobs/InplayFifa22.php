@@ -167,7 +167,7 @@ class InplayFifa22
                                     "under" => [
                                         "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
                                         "lastten" => $stats["home"]["under"]["lastten"],
-                                        "all" => $stats["home"]["under"]["lastten"]
+                                        "all" => $stats["home"]["under"]["all"]
                                     ]
                                 ];
                             }

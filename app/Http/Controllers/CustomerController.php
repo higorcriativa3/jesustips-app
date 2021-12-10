@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Mail\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -17,9 +18,9 @@ class CustomerController extends Controller
     public function index()
     {
         $customerResponse = DB::connection('mysqlWc')
-        ->select("select * from wprk_wc_customer_lookup where email='pelegrinimilf111@gmail.com'");
+        ->select("select * from wprk_wc_customer_lookup where email='junior_085@live.com'");
 
-        // return $customerResponse;
+        return $customerResponse;
 
         $customer = collect($customerResponse);
         $customerId = $customer->pluck('customer_id');
@@ -86,5 +87,75 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+
+    /**
+     * Update password.
+     *
+     * @param  \Illuminate\Http\Request
+     * @return \Illuminate\Http\Response
+     */
+    public function passwordResetProcess(Request $request){
+        try{
+          // Validate token
+          $dbToken = DB::table('password_resets')
+            ->where('email', $request->email)
+            ->value('token');
+  
+          // dd($dbToken);
+  
+          if($dbToken != $request->passwordToken || $request->passwordToken == null || $request->passwordToken == "" ) {
+            return response()->json(['message' => 'Token invalido'], 400);
+          }
+          // find email
+          $userData = User::whereEmail($request->email)->firstOrFail();
+          // update password
+          $userData->update([
+            'password'=> Hash::make($request->password)
+          ]);
+        } catch(\Exception $e) {
+          return response(['Message'=>$e->getMessage()], 500);
+        }
+        
+    }
+
+    public function sendPasswordResetEmail(Request $request){
+        // If email does not exist
+        if(!$this->validEmail($request->email)) {
+            return response()->json([
+                'message' => 'Email does not exist.'
+            ], Response::HTTP_NOT_FOUND);
+        } else {
+            // If email exists
+            $this->sendMail($request->email);
+            return response()->json([
+                'message' => 'Check your inbox, we have sent a link to reset email.'
+            ], Response::HTTP_OK);            
+        }
+    }
+
+
+    public function sendMail($email){
+        $token = $this->generateToken($email);
+        Mail::to($email)->send(new PasswordReset($token));
+    }
+
+    public function validEmail($email) {
+       return !!User::where('email', $email)->first();
+    }
+
+    public function generateToken($email){
+      $token = str_replace('/','',Hash::make(Str::random(40)));
+      $this->storeToken($token, $email);
+      return $token;
+    }
+
+    public function storeToken($token, $email){
+        DB::table('password_resets')
+        ->upsert([
+            'email' => $email,
+            'token'=> $token,          
+        ], ['email'], ['token']);
     }
 }
