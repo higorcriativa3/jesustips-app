@@ -161,15 +161,11 @@ class Inplay
                                 
                                 $inplayMatch["golsft"] = [
                                     "handcap" => $type[$oddkey+2]["NA"],
-                                    "over" => [
-                                        "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                        "lastten" => $stats["over"]["lastten"],
-                                        "all" => $stats["over"]["all"]
-                                    ],
-                                    "under" => [
-                                        "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
-                                        "lastten" => $stats["under"]["lastten"],
-                                        "all" => $stats["under"]["lastten"]
+                                    "oddOver" => convertOddToDecimal($type[$oddkey+4]["OD"]),
+                                    "oddUnder" => convertOddToDecimal($type[$oddkey+6]["OD"]),
+                                    "overs" => [
+                                        "all" => $stats["overs"],
+                                        "lastten" => $stats["oversLastTen"],
                                     ]
                                 ];
                             }

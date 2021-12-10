@@ -660,9 +660,25 @@ Route::get('/scores', function (){
 });
 
 Route::get('/testinplay/{home}/{away}', function($home, $away){
-    $rawStatistics = Stats::statistics($home, $away);
+    // $rawStatistics = Stats::statistics($home, $away);
+    //  goals ft
+        $stats = Stats::overAndUnderMatchGoals(
+            $home, 
+            $away,
+            "2.5"
+        );
+        
+        $inplayMatch["golsft"] = [
+            "handcap" => "2.5",
+            "oddOver" => "1.3",
+            "oddUnder" => "1.78",
+            "overs" => [
+                "all" => $stats["overs"],
+                "lastten" => $stats["oversLastTen"],
+            ]
+        ];
 
-    return $rawStatistics;
+    return $inplayMatch;
 });
 
 Route::get("/upcoming/{date}", function($date) {
