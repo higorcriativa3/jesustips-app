@@ -33,9 +33,9 @@ class Kernel extends ConsoleKernel
 
 	    $schedule->job(new Inplay)->everyMinute();
 	    $schedule->job(new InplayFifa22)->everyMinute();
-	    $schedule->call(new UpdateMatches)->dailyAt('01:00');
-	    $schedule->call(new UpdateMatches10Min)->dailyAt('01:30');
-	    $schedule->call(new UpdateMatches12Min)->dailyAt('02:00');
+	    // $schedule->call(new UpdateMatches)->dailyAt('01:00');
+	    // $schedule->call(new UpdateMatches10Min)->dailyAt('01:30');
+	    // $schedule->call(new UpdateMatches12Min)->dailyAt('02:00');
     }
 
     /**

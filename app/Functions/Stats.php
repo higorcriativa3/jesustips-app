@@ -3,9 +3,10 @@
 namespace App\Functions;
 
 use App\Models\Match;
+use App\Functions\Helpers;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Str;
 
 class Stats {
 
@@ -46,13 +47,16 @@ class Stats {
 	  $home = Str::lower($home);
 	  $away = Str::lower($away);
 
-    $statistics1 = Match::where('home_player', 'ILIKE', "%{$home}%")
-        ->where('away_player', 'ILIKE', "%{$away}%")
+    $home = Str::lower($home);
+    $away = Str::lower($away);
+
+    $statistics1 = Match::where('home_player', 'like', "%{$home}%")
+        ->where('away_player', 'like', "%{$away}%")
         ->get()
         ->toArray();
 
-    $statistics2 = Match::where('home_player', 'ILIKE', "%{$away}%")
-    ->where('away_player', 'ILIKE', "%{$home}%")
+    $statistics2 = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
     ->get()
     ->toArray();
 
@@ -245,82 +249,47 @@ class Stats {
   }
 
   public static function overAndUnderMatchGoals($home, $away, $odd) {
-    $results = Match::where('home_player', 'ILIKE', "%{$home}%")
-        ->where('away_player', 'ILIKE', "%{$away}%")
-        ->orderBy('match_date', 'DESC')
-        ->get()
-        ->toArray();
+    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
+    ->where('away_player', 'like', "%{$away}%")
+    ->orderBy('match_date', 'DESC')
+    ->get()
+    ->toArray();
 
-    $overCount = 0;
-    $underCount = 0;
-    $eventCount = 0;
+    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
+    ->orderBy('match_date', 'DESC')
+    ->get()
+    ->toArray();
 
-    $parcialOver  = 0;
-    $parcialUnder = 0;
-    $parcialEvent = 0;
+    $playerVsPlayer1LastTen = Match::where('home_player', 'like', "%{$home}%")
+    ->where('away_player', 'like', "%{$away}%")
+    ->orderBy('match_date', 'DESC')
+    ->limit(10)
+    ->get()
+    ->toArray();
 
-    $lastTenOver = 0;
-    $lastTenUnder = 0;
+    $playerVsPlayer2LastTen = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
+    ->orderBy('match_date', 'DESC')
+    ->limit(10)
+    ->get()
+    ->toArray();
 
-    foreach($results as $key => $event){
-        if($event['score'] && $event['score'] != "" ){
-            $score = explode("-", $event['score']);
-            $sumScore = $score[0] + $score[1];
-        } else {
-
-            $sumScore = 0;
-        }
-        
-
-        if($sumScore > $odd) {
-            $overCount++;
-        } else {
-            $underCount++;
-        }
-
-        $eventCount++;
-
-        if($key == 9 && $eventCount != 0) {
-            if($overCount != 0) {
-                $lastTenOver = round(($overCount / $eventCount) * 100, 2);
-            }
-
-            if($underCount != 0) {
-                $lastTenUnder = round(($underCount / $eventCount) * 100, 2);
-            }
-            
-        }
-    }
-
-    $overAll = 0;
-    $underAll = 0;
-
-    if($overCount != 0 && $eventCount != 0) {
-        $overAll = round(($overCount / $eventCount) * 100, 2);
-    }
-
-    if($underCount != 0 && $eventCount != 0) {
-        $underAll = round(($underCount / $eventCount) * 100, 2);
-    }
-    
+    $overs = Helpers::headToHead($playerVsPlayer1, $playerVsPlayer2);
+    $oversLastTen = Helpers::headToHead($playerVsPlayer1LastTen, $playerVsPlayer2LastTen);
 
     $return = [
-        "over" => [
-            "lastten" => $lastTenOver,
-            "all" => $overAll
-        ],
-        "under" => [
-            "lastten" => $lastTenUnder,
-            "all" => $underAll
-        ],
+        "overs" => $overs["percentage"], 
+        "oversLastTen" => $oversLastTen["percentage"], 
     ];
-
+    
+    
     return $return;
   }
 
   public static function overAndUnderHomeAway($home, $away, $odd) {
-    $results = Match::where('home_player', 'ILIKE', "%{$home['name']}%")
-        ->where('away_player', 'ILIKE', "%{$away['name']}%")
+    $results = Match::where('home_player', 'like', "%{$home['name']}%")
+        ->where('away_player', 'like', "%{$away['name']}%")
         ->orderBy('match_date', 'DESC')
         ->get()
         ->toArray();
@@ -442,81 +411,41 @@ class Stats {
   }
 
   public static function headToHead($home, $away) {
-    $lastFiveHome = Match::where('home_player', 'ILIKE', "%{$home}%")
-                            ->orWhere('away_player', 'ILIKE', "%{$home}%")
+    $lastFiveHome = Match::where('home_player', 'like', "%{$home}%")
+                            ->orWhere('away_player', 'like', "%{$home}%")
                             ->orderBy('match_date', 'DESC')
                             ->limit(5)
                             ->get()
                             ->toArray();
 
-    $lastFiveAway = Match::where('home_player','ILIKE', "%{$away}%")
-                        ->orWhere('away_player', 'ILIKE', "%{$away}%")
+    $lastFiveAway = Match::where('home_player','like', "%{$away}%")
+                        ->orWhere('away_player', 'like', "%{$away}%")
                         ->orderBy('match_date', 'DESC')
                         ->limit(5)
                         ->get()
                         ->toArray();
 
-    $playerVsPlayer1 = Match::where('home_player', 'ILIKE', "%{$home}%")
-    ->where('away_player', 'ILIKE', "%{$away}%")
+    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
+    ->where('away_player', 'like', "%{$away}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer2 = Match::where('home_player', 'ILIKE', "%{$away}%")
-    ->where('away_player', 'ILIKE', "%{$home}%")
+    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    // DB::table('matches')
-    // ->select('*')
-    // ->where(DB::raw('lower(home_player)'), 'like', '%' . strtolower($home) . '%');
+    $oversPercentage = Helpers::headToHead($playerVsPlayer1, $playerVsPlayer2);
 
-    $playerVsPlayer = array_merge($playerVsPlayer1, $playerVsPlayer2);
-
-    $overs = [
-        "1.5" => 0,
-        "2.5" => 0,
-        "3.5" => 0,
-        "4.5" => 0,
-        "5.5" => 0,
-        "6.5" => 0,
-        "7.5" => 0,
-        "8.5" => 0,
-        "9.5" => 0,
-        "10.5" => 0,   
-    ];
-
-    $oversPercentage = array();
-
-    foreach($playerVsPlayer as $event) {
-        if($event["score"] && $event["score"] != "") {
-            $score = explode('-', $event["score"]);
-            $sumScore = $score[0] + $score[1];
-        } else {
-            $sumScore = 0;
-        }
-        
-        for($handcapControl = 1.5; $handcapControl <= 10.5; $handcapControl++){
-            
-            if($sumScore > $handcapControl){
-                $overs["{$handcapControl}"]++;
-            }
-        }
-    }
-
-    // Convert overs to percentage
-    foreach($overs as $key => $over) {
-        if($over != 0 && $playerVsPlayer != 0){
-            $oversPercentage[$key] = round(($over / count($playerVsPlayer)) * 100, 2);
-        }
-    }
+    // dd($oversPercentage) 
 
     return[
         'lastFiveHome' => $lastFiveHome,
         'lastFiveAway' => $lastFiveAway,
-        'overs' => $oversPercentage,
-        'playerVsPlayer' => $playerVsPlayer
+        'overs' => $oversPercentage["percentage"],
+        'playerVsPlayer' => $oversPercentage["playerVsPlayer"]
     ];
   }
 
@@ -529,14 +458,14 @@ class Stats {
 	  $home = Str::lower($home);
 	  $away = Str::lower($away);
 
-    $statistics1 = Match::where('home_player', 'ILIKE', "%{$home}%")
-        ->where('away_player', 'ILIKE', "%{$away}%")
+    $statistics1 = Match::where('home_player', 'LIKE', "%{$home}%")
+        ->where('away_player', 'LIKE', "%{$away}%")
         ->where('match_date', '>', "2021-11-01")
         ->get()
         ->toArray();
 
-    $statistics2 = Match::where('home_player', 'ILIKE', "%{$away}%")
-    ->where('away_player', 'ILIKE', "%{$home}%")
+    $statistics2 = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
     ->where('match_date', '>', "2021-11-01")
     ->get()
     ->toArray();
@@ -731,83 +660,52 @@ class Stats {
   }
 
   public static function overAndUnderMatchGoalsFifa22($home, $away, $odd) {
-    $results = Match::where('home_player', 'ILIKE', "%{$home}%")
-        ->where('away_player', 'ILIKE', "%{$away}%")
-        ->where('match_date', '>', "2021-11-01")
-        ->orderBy('match_date', 'DESC')
-        ->get()
-        ->toArray();
 
-    $overCount = 0;
-    $underCount = 0;
-    $eventCount = 0;
+    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
+    ->where('away_player', 'like', "%{$away}%")
+    ->where('match_date', '>', "2021-11-01")
+    ->orderBy('match_date', 'DESC')
+    ->get()
+    ->toArray();
 
-    $parcialOver  = 0;
-    $parcialUnder = 0;
-    $parcialEvent = 0;
+    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
+    ->where('match_date', '>', "2021-11-01")
+    ->orderBy('match_date', 'DESC')
+    ->get()
+    ->toArray();
 
-    $lastTenOver = 0;
-    $lastTenUnder = 0;
+    $playerVsPlayer1LastTen = Match::where('home_player', 'like', "%{$home}%")
+    ->where('away_player', 'like', "%{$away}%")
+    ->where('match_date', '>', "2021-11-01")
+    ->orderBy('match_date', 'DESC')
+    ->limit(10)
+    ->get()
+    ->toArray();
 
-    foreach($results as $key => $event){
-        if($event['score'] && $event['score'] != "" ){
-            $score = explode("-", $event['score']);
-            $sumScore = $score[0] + $score[1];
-        } else {
+    $playerVsPlayer2LastTen = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
+    ->where('match_date', '>', "2021-11-01")
+    ->orderBy('match_date', 'DESC')
+    ->limit(10)
+    ->get()
+    ->toArray();
 
-            $sumScore = 0;
-        }
-
-
-        if($sumScore > $odd) {
-            $overCount++;
-        } else {
-            $underCount++;
-        }
-
-        $eventCount++;
-
-        if($key == 9 && $eventCount != 0) {
-            if($overCount != 0) {
-                $lastTenOver = round(($overCount / $eventCount) * 100, 2);
-            }
-
-            if($underCount != 0) {
-                $lastTenUnder = round(($underCount / $eventCount) * 100, 2);
-            }
-
-        }
-    }
-
-    $overAll = 0;
-    $underAll = 0;
-
-    if($overCount != 0 && $eventCount != 0) {
-        $overAll = round(($overCount / $eventCount) * 100, 2);
-    }
-
-    if($underCount != 0 && $eventCount != 0) {
-        $underAll = round(($underCount / $eventCount) * 100, 2);
-    }
-
+    $overs = Helpers::headToHead($playerVsPlayer1, $playerVsPlayer2);
+    $oversLastTen = Helpers::headToHead($playerVsPlayer1LastTen, $playerVsPlayer2LastTen);
 
     $return = [
-        "over" => [
-            "lastten" => $lastTenOver,
-            "all" => $overAll
-        ],
-        "under" => [
-            "lastten" => $lastTenUnder,
-            "all" => $underAll
-        ],
+        "overs" => $overs["percentage"], 
+        "oversLastTen" => $oversLastTen["percentage"], 
     ];
-
+    
+    
     return $return;
   }
 
   public static function overAndUnderHomeAwayFifa22($home, $away, $odd) {
-    $results = Match::where('home_player', 'ILIKE', "%{$home['name']}%")
-        ->where('away_player', 'ILIKE', "%{$away['name']}%")
+    $results = Match::where('home_player', 'like', "%{$home['name']}%")
+        ->where('away_player', 'like', "%{$away['name']}%")
         ->where('match_date', '>', "2021-11-01")
         ->orderBy('match_date', 'DESC')
         ->get()
@@ -930,85 +828,43 @@ class Stats {
   }
 
   public static function headToHeadFifa22($home, $away) {
-    $lastFiveHome = Match::where('home_player', 'ILIKE', "%{$home}%")
-                            ->orWhere('away_player', 'ILIKE', "%{$home}%")
+    $lastFiveHome = Match::where('home_player', 'like', "%{$home}%")
+                            ->orWhere('away_player', 'like', "%{$home}%")
                             ->where('match_date', '>', "2021-11-01")
                             ->orderBy('match_date', 'DESC')
                             ->limit(5)
                             ->get()
                             ->toArray();
 
-    $lastFiveAway = Match::where('home_player','ILIKE', "%{$away}%")
-                        ->orWhere('away_player', 'ILIKE', "%{$away}%")
+    $lastFiveAway = Match::where('home_player','like', "%{$away}%")
+                        ->orWhere('away_player', 'like', "%{$away}%")
                         ->where('match_date', '>', "2021-11-01")
                         ->orderBy('match_date', 'DESC')
                         ->limit(5)
                         ->get()
                         ->toArray();
 
-    $playerVsPlayer1 = Match::where('home_player', 'ILIKE', "%{$home}%")
-    ->where('away_player', 'ILIKE', "%{$away}%")
+    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
+    ->where('away_player', 'like', "%{$away}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer2 = Match::where('home_player', 'ILIKE', "%{$away}%")
-    ->where('away_player', 'ILIKE', "%{$home}%")
+    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
+    ->where('away_player', 'like', "%{$home}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    // DB::table('matches')
-    // ->select('*')
-    // ->where(DB::raw('lower(home_player)'), 'like', '%' . strtolower($home) . '%');
-
-    $playerVsPlayer = array_merge($playerVsPlayer1, $playerVsPlayer2);
-
-    $overs = [
-        "1.5" => 0,
-        "2.5" => 0,
-        "3.5" => 0,
-        "4.5" => 0,
-        "5.5" => 0,
-        "6.5" => 0,
-        "7.5" => 0,
-        "8.5" => 0,
-        "9.5" => 0,
-        "10.5" => 0,
-    ];
-
-    $oversPercentage = array();
-
-    foreach($playerVsPlayer as $event) {
-        if($event["score"] && $event["score"] != "") {
-            $score = explode('-', $event["score"]);
-            $sumScore = $score[0] + $score[1];
-        } else {
-            $sumScore = 0;
-        }
-
-        for($handcapControl = 1.5; $handcapControl <= 10.5; $handcapControl++){
-
-            if($sumScore > $handcapControl){
-                $overs["{$handcapControl}"]++;
-            }
-        }
-    }
-
-    // Convert overs to percentage
-    foreach($overs as $key => $over) {
-        if($over != 0 && $playerVsPlayer != 0){
-            $oversPercentage[$key] = round(($over / count($playerVsPlayer)) * 100, 2);
-        }
-    }
+    $oversPercentage = Helpers::headToHead($playerVsPlayer1, $playerVsPlayer2);
 
     return[
         'lastFiveHome' => $lastFiveHome,
         'lastFiveAway' => $lastFiveAway,
-        'overs' => $oversPercentage,
-        'playerVsPlayer' => $playerVsPlayer
+        'overs' => $oversPercentage->percentage,
+        'playerVsPlayer' => $playerVsPlayer->playerVsPlayer
 	];
   }
  }
