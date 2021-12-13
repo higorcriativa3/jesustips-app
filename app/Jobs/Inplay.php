@@ -166,7 +166,7 @@ class Inplay
                                     "under" => [
                                         "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
                                         "lastten" => $stats["under"]["lastten"],
-                                        "all" => $stats["under"]["lastten"]
+                                        "all" => $stats["under"]["all"]
                                     ]
                                 ];
                             }
@@ -189,7 +189,7 @@ class Inplay
                                     "under" => [
                                         "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
                                         "lastten" => $stats["home"]["under"]["lastten"],
-                                        "all" => $stats["home"]["under"]["lastten"]
+                                        "all" => $stats["home"]["under"]["all"]
                                     ]
                                 ];
                             }
@@ -219,7 +219,7 @@ class Inplay
                             }
         
                             // Both to score
-                            if(str_contains($odd["NA"], "Both Teams To Score")){
+                            if(str_contains($odd["NA"], "Both Teams to Score")){
                                 $lastTen = $rawStatistics["bothToScoreLastTen"];
                                 $all = $rawStatistics["bothToScore"];
                                 $matches = $rawStatistics["matches"];
