@@ -610,3 +610,10 @@ Route::post('/headtohead/22', function(Request $request){
 
 Route::get('/customers', [CustomerController::class, 'index']);
 
+Route::get('/testinplay/{home}/{away}', function($home, $away){
+    $home = Str::lower($home);
+    $away = Str::lower($away);
+    $rawStatistics = Stats::statisticsFifa22($home, $away);
+
+    return $rawStatistics;
+});

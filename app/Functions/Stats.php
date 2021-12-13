@@ -39,7 +39,12 @@ class Stats {
     // $url = 'https://api.b365api.com/v1/team?token='. env('API_TOKEN') . '&sport_id=1';
     // $result = Http::get($url);
 
-    // dd($home);
+	  // dd($home);
+	  //
+	  //
+
+	  $home = Str::lower($home);
+	  $away = Str::lower($away);
 
     $statistics1 = Match::where('home_player', 'ILIKE', "%{$home}%")
         ->where('away_player', 'ILIKE', "%{$away}%")
@@ -520,6 +525,9 @@ class Stats {
     // $result = Http::get($url);
 
     // dd($home);
+
+	  $home = Str::lower($home);
+	  $away = Str::lower($away);
 
     $statistics1 = Match::where('home_player', 'ILIKE', "%{$home}%")
         ->where('away_player', 'ILIKE', "%{$away}%")
