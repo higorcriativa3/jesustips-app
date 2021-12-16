@@ -50,13 +50,13 @@ class Stats {
     $home = Str::lower($home);
     $away = Str::lower($away);
 
-    $statistics1 = Match::where('home_player', 'like', "%{$home}%")
-        ->where('away_player', 'like', "%{$away}%")
+    $statistics1 = Match::where('home_player', 'iLIKE', "%{$home}%")
+        ->where('away_player', 'iLIKE', "%{$away}%")
         ->get()
         ->toArray();
 
-    $statistics2 = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $statistics2 = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->get()
     ->toArray();
 
@@ -249,27 +249,27 @@ class Stats {
   }
 
   public static function overAndUnderMatchGoals($home, $away, $odd) {
-    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
-    ->where('away_player', 'like', "%{$away}%")
+    $playerVsPlayer1 = Match::where('home_player', 'iLIKE', "%{$home}%")
+    ->where('away_player', 'iLIKE', "%{$away}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $playerVsPlayer2 = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer1LastTen = Match::where('home_player', 'like', "%{$home}%")
-    ->where('away_player', 'like', "%{$away}%")
+    $playerVsPlayer1LastTen = Match::where('home_player', 'iLIKE', "%{$home}%")
+    ->where('away_player', 'iLIKE', "%{$away}%")
     ->orderBy('match_date', 'DESC')
     ->limit(10)
     ->get()
     ->toArray();
 
-    $playerVsPlayer2LastTen = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $playerVsPlayer2LastTen = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->orderBy('match_date', 'DESC')
     ->limit(10)
     ->get()
@@ -288,8 +288,8 @@ class Stats {
   }
 
   public static function overAndUnderHomeAway($home, $away, $odd) {
-    $results = Match::where('home_player', 'like', "%{$home['name']}%")
-        ->where('away_player', 'like', "%{$away['name']}%")
+    $results = Match::where('home_player', 'iLIKE', "%{$home['name']}%")
+        ->where('away_player', 'iLIKE', "%{$away['name']}%")
         ->orderBy('match_date', 'DESC')
         ->get()
         ->toArray();
@@ -411,28 +411,28 @@ class Stats {
   }
 
   public static function headToHead($home, $away) {
-    $lastFiveHome = Match::where('home_player', 'like', "%{$home}%")
-                            ->orWhere('away_player', 'like', "%{$home}%")
+    $lastFiveHome = Match::where('home_player', 'iLIKE', "%{$home}%")
+                            ->orWhere('away_player', 'iLIKE', "%{$home}%")
                             ->orderBy('match_date', 'DESC')
                             ->limit(5)
                             ->get()
                             ->toArray();
 
-    $lastFiveAway = Match::where('home_player','like', "%{$away}%")
-                        ->orWhere('away_player', 'like', "%{$away}%")
+    $lastFiveAway = Match::where('home_player','iLIKE', "%{$away}%")
+                        ->orWhere('away_player', 'iLIKE', "%{$away}%")
                         ->orderBy('match_date', 'DESC')
                         ->limit(5)
                         ->get()
                         ->toArray();
 
-    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
-    ->where('away_player', 'like', "%{$away}%")
+    $playerVsPlayer1 = Match::where('home_player', 'iLIKE', "%{$home}%")
+    ->where('away_player', 'iLIKE', "%{$away}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $playerVsPlayer2 = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
@@ -458,14 +458,14 @@ class Stats {
 	  $home = Str::lower($home);
 	  $away = Str::lower($away);
 
-    $statistics1 = Match::where('home_player', 'LIKE', "%{$home}%")
-        ->where('away_player', 'LIKE', "%{$away}%")
+    $statistics1 = Match::where('home_player', 'iLIKE', "%{$home}%")
+        ->where('away_player', 'iLIKE', "%{$away}%")
         ->where('match_date', '>', "2021-11-01")
         ->get()
         ->toArray();
 
-    $statistics2 = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $statistics2 = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->where('match_date', '>', "2021-11-01")
     ->get()
     ->toArray();
@@ -661,30 +661,30 @@ class Stats {
 
   public static function overAndUnderMatchGoalsFifa22($home, $away, $odd) {
 
-    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
-    ->where('away_player', 'like', "%{$away}%")
+    $playerVsPlayer1 = Match::where('home_player', 'iLIKE', "%{$home}%")
+    ->where('away_player', 'iLIKE', "%{$away}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $playerVsPlayer2 = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer1LastTen = Match::where('home_player', 'like', "%{$home}%")
-    ->where('away_player', 'like', "%{$away}%")
+    $playerVsPlayer1LastTen = Match::where('home_player', 'iLIKE', "%{$home}%")
+    ->where('away_player', 'iLIKE', "%{$away}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->limit(10)
     ->get()
     ->toArray();
 
-    $playerVsPlayer2LastTen = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $playerVsPlayer2LastTen = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->limit(10)
@@ -704,8 +704,8 @@ class Stats {
   }
 
   public static function overAndUnderHomeAwayFifa22($home, $away, $odd) {
-    $results = Match::where('home_player', 'like', "%{$home['name']}%")
-        ->where('away_player', 'like', "%{$away['name']}%")
+    $results = Match::where('home_player', 'iLIKE', "%{$home['name']}%")
+        ->where('away_player', 'iLIKE', "%{$away['name']}%")
         ->where('match_date', '>', "2021-11-01")
         ->orderBy('match_date', 'DESC')
         ->get()
@@ -828,31 +828,31 @@ class Stats {
   }
 
   public static function headToHeadFifa22($home, $away) {
-    $lastFiveHome = Match::where('home_player', 'like', "%{$home}%")
-                            ->orWhere('away_player', 'like', "%{$home}%")
+    $lastFiveHome = Match::where('home_player', 'iLIKE', "%{$home}%")
+                            ->orWhere('away_player', 'iLIKE', "%{$home}%")
                             ->where('match_date', '>', "2021-11-01")
                             ->orderBy('match_date', 'DESC')
                             ->limit(5)
                             ->get()
                             ->toArray();
 
-    $lastFiveAway = Match::where('home_player','like', "%{$away}%")
-                        ->orWhere('away_player', 'like', "%{$away}%")
+    $lastFiveAway = Match::where('home_player','iLIKE', "%{$away}%")
+                        ->orWhere('away_player', 'iLIKE', "%{$away}%")
                         ->where('match_date', '>', "2021-11-01")
                         ->orderBy('match_date', 'DESC')
                         ->limit(5)
                         ->get()
                         ->toArray();
 
-    $playerVsPlayer1 = Match::where('home_player', 'like', "%{$home}%")
-    ->where('away_player', 'like', "%{$away}%")
+    $playerVsPlayer1 = Match::where('home_player', 'iLIKE', "%{$home}%")
+    ->where('away_player', 'iLIKE', "%{$away}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->get()
     ->toArray();
 
-    $playerVsPlayer2 = Match::where('home_player', 'like', "%{$away}%")
-    ->where('away_player', 'like', "%{$home}%")
+    $playerVsPlayer2 = Match::where('home_player', 'iLIKE', "%{$away}%")
+    ->where('away_player', 'iLIKE', "%{$home}%")
     ->where('match_date', '>', "2021-11-01")
     ->orderBy('match_date', 'DESC')
     ->get()
@@ -863,8 +863,8 @@ class Stats {
     return[
         'lastFiveHome' => $lastFiveHome,
         'lastFiveAway' => $lastFiveAway,
-        'overs' => $oversPercentage->percentage,
-        'playerVsPlayer' => $playerVsPlayer->playerVsPlayer
+        'overs' => $oversPercentage["percentage"],
+        'playerVsPlayer' => $oversPercentage["playerVsPlayer"]
 	];
   }
  }

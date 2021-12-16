@@ -64,11 +64,22 @@ class Inplay
 
             $inplayFilter12min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047670&token=91390-4sDwuMJTtIhuPJ")
             ->json();
+
+            // Return if have no games inplay
+            if(
+                !isset($inplayFilter["results"]) && 
+                !isset($inplayFilter8min["results"]) && 
+                !isset($inplayFilter12min["results"])
+            ){
+                file_put_contents(base_path("storage/app/live.json"), "No games inplay");
+                return "No games inplay";
+            }
         
             $games = array_merge($inplayFilter12min["results"], $inplayFilter8min["results"], $inplayFilter["results"]);
         
             // Return if have no games inplay
             if(empty($games)){
+                file_put_contents(base_path("storage/app/live.json"), "No games inplay");
                 return "No games inplay";
             }
         

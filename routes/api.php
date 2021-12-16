@@ -691,3 +691,11 @@ Route::get("/upcoming/{date}", function($date) {
     return $upcoming;
 });
 
+Route::post('/player/find', function(Request $request){
+    $matches = Match::where('league_name', $request->league)
+    ->where('home_player', $request->player)
+    ->get();
+
+    return $matches;
+});
+

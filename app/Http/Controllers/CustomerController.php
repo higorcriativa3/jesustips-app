@@ -18,7 +18,7 @@ class CustomerController extends Controller
     public function index()
     {
         $customerResponse = DB::connection('mysqlWc')
-        ->select("select * from wprk_wc_customer_lookup where email='junior_085@live.com'");
+        ->select("select * from wprk_wc_customer_lookup where email='marcelomateus244@gmail.com'");
 
         return $customerResponse;
 

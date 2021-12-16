@@ -35,13 +35,27 @@ class InplayFifa22
             $inplayFilter = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10048139&token=91390-4sDwuMJTtIhuPJ")
             ->json();
 
-   		 $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
+   		    $inplayFilter8min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047781&token=91390-4sDwuMJTtIhuPJ")
             ->json();
+
+            $inplayFilter12min = Http::get("https://api.b365api.com/v1/bet365/inplay_filter?sport_id=1&league_id=10047670&token=91390-4sDwuMJTtIhuPJ")
+            ->json();
+
+            // Return if have no games inplay
+            if(
+                !isset($inplayFilter["results"]) && 
+                !isset($inplayFilter8min["results"]) && 
+                !isset($inplayFilter12min["results"])
+            ){
+                file_put_contents(base_path("storage/app/liveFifa22.json"), "No games inplay");
+                return "No games inplay";
+            }
         
-            $games = array_merge($inplayFilter["results"], $inplayFilter8min["results"]); 
+            $games = array_merge($inplayFilter["results"], $inplayFilter8min["results"], $inplayFilter12min["results"]); 
         
             // Return if have no games inplay
             if(empty($games)){
+                file_put_contents(base_path("storage/app/liveFifa22.json"), "No games inplay");
                 return "No games inplay";
             }
         
@@ -129,22 +143,18 @@ class InplayFifa22
         
                             //  goals ft
                             if($odd["NA"] == "Match Goals"){
-                                $stats = Stats::overAndUnderMatchGoalsFifa22(
+                                $stats = Stats::overAndUnderMatchGoals(
                                     $home["name"], 
                                     $away["name"], 
                                     $type[$oddkey+2]["NA"]);
                                 
                                 $inplayMatch["golsft"] = [
                                     "handcap" => $type[$oddkey+2]["NA"],
-                                    "over" => [
-                                        "odd" => convertOddToDecimal($type[$oddkey+4]["OD"]),
-                                        "lastten" => $stats["over"]["lastten"],
-                                        "all" => $stats["over"]["all"]
-                                    ],
-                                    "under" => [
-                                        "odd" => convertOddToDecimal($type[$oddkey+6]["OD"]),
-                                        "lastten" => $stats["under"]["lastten"],
-                                        "all" => $stats["under"]["lastten"]
+                                    "oddOver" => convertOddToDecimal($type[$oddkey+4]["OD"]),
+                                    "oddUnder" => convertOddToDecimal($type[$oddkey+6]["OD"]),
+                                    "overs" => [
+                                        "all" => $stats["overs"],
+                                        "lastten" => $stats["oversLastTen"],
                                     ]
                                 ];
                             }
